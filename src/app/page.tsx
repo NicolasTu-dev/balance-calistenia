@@ -1,9 +1,11 @@
 import Link from "next/link";
+import CodeRedirect from "./CodeRedirect";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
       {/* HERO */}
+      <CodeRedirect />
       <section className="max-w-6xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold leading-tight">
