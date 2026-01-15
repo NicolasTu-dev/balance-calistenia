@@ -132,7 +132,7 @@ export default function Home() {
 
       <footer className="border-t border-white/5 bg-black/20">
         <div className="max-w-6xl mx-auto px-6 py-10 text-sm text-white/50">
-          © {new Date().getFullYear()} Balance Calistenia — Demo / MVP.
+          © {new Date().getFullYear()} Balance Calistenia — Demo by Nico.
         </div>
       </footer>
     </main>
