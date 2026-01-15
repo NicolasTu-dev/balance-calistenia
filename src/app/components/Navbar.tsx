@@ -16,7 +16,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-xl overflow-hidden ring-1 ring-white/10">
               <Image
-                src="/public/brand/logo.png"
+                src="brand/logo.png"
                 alt="Balance Calisthenics"
                 width={36}
                 height={36}
