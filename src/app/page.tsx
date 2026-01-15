@@ -1,102 +1,140 @@
 import Link from "next/link";
+import { ArrowRight, MapPin } from "lucide-react";
 import CodeRedirect from "./CodeRedirect";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      {/* HERO */}
+    <main className="min-h-[calc(100vh-64px)]">
       <CodeRedirect />
-      <section className="max-w-6xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-            Balance Calistenia
-          </h1>
-          <p className="mt-6 text-zinc-300 text-lg">
-            Entrenamientos estructurados, progresiones reales y planificación
-            inteligente para construir fuerza, estética y control corporal.
-          </p>
 
-          <div className="mt-8 flex gap-4">
-            <Link
-              href="/login"
-              className="rounded-xl bg-white text-black px-6 py-3 font-medium hover:bg-zinc-200 transition"
-            >
-              Ingresar
-            </Link>
-            <Link
-              href="/tienda"
-              className="rounded-xl border border-zinc-700 px-6 py-3 font-medium hover:bg-zinc-800 transition"
-            >
-              Ver planes
-            </Link>
-          </div>
-        </div>
-
-        <div className="rounded-3xl bg-linear-to-br from-zinc-800 to-zinc-900 p-10 shadow-xl">
-          <h2 className="text-xl font-semibold">¿Qué incluye la membresía?</h2>
-          <ul className="mt-6 space-y-3 text-zinc-300">
-            <li>✔ Planificaciones mensuales estructuradas</li>
-            <li>✔ Programas por objetivo (fuerza, peso, skills)</li>
-            <li>✔ Biblioteca de ejercicios en video</li>
-            <li>✔ Progresiones guiadas</li>
-            <li>✔ Acceso desde cualquier dispositivo</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* SECCIÓN PROGRAMAS */}
-      <section className="bg-zinc-900 py-24">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-12">
-            Programas de entrenamiento
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="rounded-2xl bg-zinc-800 p-6">
-              <h3 className="font-semibold text-xl">
-                Descenso de peso + fuerza
-              </h3>
-              <p className="mt-2 text-zinc-400">
-                Planificaciones diseñadas para quemar grasa sin perder masa
-                muscular.
-              </p>
+      {/* HERO */}
+      <section className="max-w-6xl mx-auto px-6 pt-14 pb-16">
+        <div className="grid lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+              Planificaciones reales • Acceso inmediato
             </div>
 
-            <div className="rounded-2xl bg-zinc-800 p-6">
-              <h3 className="font-semibold text-xl">Skills & Control</h3>
-              <p className="mt-2 text-zinc-400">
-                Handstand, muscle-up, front lever, planche y progresiones reales.
-              </p>
+            <h1 className="mt-6 text-4xl md:text-5xl font-bold tracking-tight">
+              Entrená con estructura.
+              <span className="block text-white/70">
+                Progresá con calistenia.
+              </span>
+            </h1>
+
+            <p className="mt-5 text-white/70 text-lg leading-relaxed max-w-xl">
+              Balance Calistenia combina fuerza, skills y planificación semanal
+              para que tengas un camino claro: qué hacer, cuándo hacerlo y cómo progresar.
+            </p>
+
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/tienda"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
+              >
+                Ver membresías <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/programas"
+                className="inline-flex items-center justify-center rounded-2xl px-5 py-3 font-medium bg-white/5 border border-white/10 hover:bg-white/10 transition"
+              >
+                Explorar programas
+              </Link>
             </div>
 
-            <div className="rounded-2xl bg-zinc-800 p-6">
-              <h3 className="font-semibold text-xl">Estética & Volumen</h3>
-              <p className="mt-2 text-zinc-400">
-                Construí un físico equilibrado con calistenia avanzada.
-              </p>
+            <div className="mt-8 flex flex-wrap gap-2 text-sm text-white/60">
+              {[
+                "Fuerza",
+                "Movilidad",
+                "Skills",
+                "Descenso de peso",
+                "Progresiones",
+              ].map((t) => (
+                <span
+                  key={t}
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1"
+                >
+                  {t}
+                </span>
+              ))}
             </div>
           </div>
+
+          {/* Right card */}
+          <div className="gradient-border">
+            <div className="rounded-[1.25rem] bg-white/5 border border-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
+              <h2 className="text-lg font-semibold">Qué incluye la membresía</h2>
+              <ul className="mt-4 space-y-3 text-white/70 text-sm">
+                <li>• Planificaciones mensuales y semanales</li>
+                <li>• Estructura por bloques (Básicos / Skills)</li>
+                <li>• Ejercicios + series + notas</li>
+                <li>• Acceso desde cualquier dispositivo</li>
+                <li>• Gestión simple por alumno</li>
+              </ul>
+
+              <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
+                <div className="flex items-center gap-2 font-medium text-white">
+                  <MapPin className="h-4 w-4 text-emerald-300" />
+                  Plaza Giordano Bruno — Caballito
+                </div>
+                <div className="mt-1 text-white/60">
+                  Entrenamientos presenciales + acceso online a la plataforma.
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <Link
+                  href="/login"
+                  className="flex-1 rounded-2xl px-4 py-3 text-center font-medium bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                >
+                  Ingresar
+                </Link>
+                <Link
+                  href="/app"
+                  className="flex-1 rounded-2xl px-4 py-3 text-center font-semibold text-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
+                >
+                  Ir a mi panel
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section className="py-24 text-center">
-        <h2 className="text-3xl font-bold">
-          Entrená con una planificación real
-        </h2>
-        <p className="mt-4 text-zinc-400">
-          Accedé a tu panel, seguí tu progreso y entrená con estructura.
-        </p>
-
-        <div className="mt-8">
-          <Link
-            href="/login"
-            className="inline-block rounded-xl bg-white text-black px-8 py-4 font-semibold hover:bg-zinc-200 transition"
-          >
-            Comenzar ahora
-          </Link>
+      {/* Section preview */}
+      <section className="max-w-6xl mx-auto px-6 pb-20">
+        <div className="grid md:grid-cols-3 gap-4">
+          {[
+            {
+              title: "Descenso de peso + fuerza",
+              desc: "Planificación con volumen inteligente para quemar grasa sin perder rendimiento.",
+            },
+            {
+              title: "Skills & Control",
+              desc: "Progresiones claras para handstand, muscle-up, front lever y más.",
+            },
+            {
+              title: "Estética & Volumen",
+              desc: "Construcción equilibrada con calistenia y accesorios.",
+            },
+          ].map((c) => (
+            <div
+              key={c.title}
+              className="rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/7 transition"
+            >
+              <div className="font-semibold">{c.title}</div>
+              <div className="mt-2 text-sm text-white/65">{c.desc}</div>
+            </div>
+          ))}
         </div>
       </section>
+
+      <footer className="border-t border-white/5 bg-black/20">
+        <div className="max-w-6xl mx-auto px-6 py-10 text-sm text-white/50">
+          © {new Date().getFullYear()} Balance Calistenia — Demo / MVP.
+        </div>
+      </footer>
     </main>
   );
 }
