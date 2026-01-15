@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, MapPin, Sparkles } from "lucide-react";
+import { MapPin, Sparkles, ChevronRight } from "lucide-react";
 import CodeRedirect from "./CodeRedirect";
 import { supabaseServer } from "@/app/lib/supabase/server";
 import { requireActiveMembership } from "@/app/lib/supabase/access";
@@ -9,13 +9,12 @@ export default async function Home() {
   const { data: userRes } = await supabase.auth.getUser();
   const user = userRes.user ?? null;
 
-  const membership = user ? await requireActiveMembership() : { ok: false as const };
+  const membership = user
+    ? await requireActiveMembership()
+    : ({ ok: false as const, reason: "no_user" } as const);
 
-  // CTAs
-  const primaryHref = user ? "/app/planificaciones" : "/login";
-  const primaryText = user ? "Ir a mi panel" : "Ingresar";
-  const secondaryHref = membership.ok ? "/app/planificaciones" : "/tienda";
-  const secondaryText = membership.ok ? "Ver planificaciones" : "Ver membresías";
+  // Un único CTA: si hay sesión, va directo a planificaciones; si no, login
+  const ctaHref = user ? "/app/planificaciones" : "/login";
 
   return (
     <main className="min-h-[calc(100vh-64px)]">
@@ -39,21 +38,24 @@ export default async function Home() {
               qué hacer, cuándo hacerlo y cómo progresar.
             </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            {/* UN SOLO BOTÓN */}
+            <div className="mt-8">
               <Link
-                href={primaryHref}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
+                href={ctaHref}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 font-semibold text-black
+                           bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
               >
-                {primaryText} <ArrowRight className="h-4 w-4" />
+                Ir a mi planificación
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-black/10">
+                  <ChevronRight className="h-4 w-4" />
+                </span>
               </Link>
 
-              {/* Si ya tiene membresía activa, ocultamos CTA de tienda y damos CTA suave */}
-              <Link
-                href={secondaryHref}
-                className="inline-flex items-center justify-center rounded-2xl px-5 py-3 font-medium bg-white/5 border border-white/10 hover:bg-white/10 transition"
-              >
-                {secondaryText}
-              </Link>
+              <p className="mt-3 text-sm text-white/60">
+                {user
+                  ? "Accedé directo a tu panel."
+                  : "Ingresá con tu email y empezá a entrenar con estructura."}
+              </p>
             </div>
 
             {user && (
@@ -100,22 +102,16 @@ export default async function Home() {
                 </div>
               </div>
 
-              {/* Si ya hay membresía activa, sacamos el CTA de activación y dejamos un CTA directo */}
-              <div className="mt-6 flex gap-3">
-                <Link
-                  href={user ? "/app/planificaciones" : "/login"}
-                  className="flex-1 rounded-2xl px-4 py-3 text-center font-semibold text-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
-                >
-                  {user ? "Ir a mi panel" : "Ingresar"}
-                </Link>
-
-                {!membership.ok && (
-                  <Link
-                    href="/tienda"
-                    className="flex-1 rounded-2xl px-4 py-3 text-center font-medium bg-white/5 border border-white/10 hover:bg-white/10 transition"
-                  >
-                    Activar membresía
-                  </Link>
+              {/* Dejamos sólo estado visual; NO CTA extra */}
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                {user ? (
+                  membership.ok ? (
+                    <span>Tu acceso está activo. Entrá al panel para ver tus planificaciones.</span>
+                  ) : (
+                    <span>Tenés sesión iniciada, pero todavía no tenés membresía activa.</span>
+                  )
+                ) : (
+                  <span>Ingresá con tu email para acceder a tu panel.</span>
                 )}
               </div>
             </div>

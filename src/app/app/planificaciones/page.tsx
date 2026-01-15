@@ -48,72 +48,71 @@ export default async function PlanificacionesPage() {
   const membership = await requireActiveMembership();
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-10 space-y-6">
-      {/* Header */}
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-8">
-        <div className="flex items-start justify-between gap-6 flex-col md:flex-row">
-          <div>
-            <p className="text-sm text-white/60">Mi panel</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">Planificaciones</h1>
-            <p className="mt-2 text-white/70 max-w-2xl">
-              Elegí tu planificación mensual. Esta vista está preparada para que después venga todo desde Sheets/DB.
-            </p>
+    <div className="space-y-6">
+      {/* Header interno */}
+      <div className="flex items-start justify-between gap-6 flex-col md:flex-row">
+        <div>
+          <p className="text-sm text-white/60">Planificaciones</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight">Tus planes</h1>
+          <p className="mt-2 text-white/70 max-w-2xl text-sm">
+            Importá tu XLSX o seleccioná una planificación disponible.
+          </p>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {membership.ok ? (
-                <span className="inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-sm text-emerald-200">
-                  Acceso activo
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/70">
-                  <Lock className="h-4 w-4" />
-                  Sin membresía activa
-                </span>
-              )}
-
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/70">
-                <CalendarDays className="h-4 w-4" />
-                {PLANS.length} planes
+          <div className="mt-4 flex flex-wrap gap-2">
+            {membership.ok ? (
+              <span className="inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-sm text-emerald-200">
+                Acceso activo
               </span>
-            </div>
-          </div>
+            ) : (
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/70">
+                <Lock className="h-4 w-4" />
+                Sin membresía activa
+              </span>
+            )}
 
-          {/* Filters (solo UI por ahora) */}
-          <div className="w-full md:w-auto">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <Filter className="h-4 w-4 text-emerald-200" />
-                Filtros (demo)
-              </div>
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <select className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-300/40">
-                  <option>Objetivo: Todos</option>
-                  <option>Descenso de peso</option>
-                  <option>Skills & Control</option>
-                  <option>Estética & Volumen</option>
-                </select>
-                <select className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-300/40">
-                  <option>Nivel: Todos</option>
-                  <option>Inicial</option>
-                  <option>Intermedio</option>
-                  <option>Avanzado</option>
-                </select>
-              </div>
-              {!membership.ok && (
-                <Link
-                  href="/tienda"
-                  className="mt-3 inline-flex w-full justify-center rounded-xl px-4 py-2 text-sm font-semibold text-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
-                >
-                  Activar membresía
-                </Link>
-              )}
-            </div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/70">
+              <CalendarDays className="h-4 w-4" />
+              {PLANS.length} planes
+            </span>
           </div>
         </div>
-      </section>
+
+        {/* Filters demo */}
+        <div className="w-full md:w-auto">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Filter className="h-4 w-4 text-emerald-200" />
+              Filtros (demo)
+            </div>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <select className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-300/40">
+                <option>Objetivo: Todos</option>
+                <option>Descenso de peso</option>
+                <option>Skills & Control</option>
+                <option>Estética & Volumen</option>
+              </select>
+              <select className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-300/40">
+                <option>Nivel: Todos</option>
+                <option>Inicial</option>
+                <option>Intermedio</option>
+                <option>Avanzado</option>
+              </select>
+            </div>
+
+            {!membership.ok && (
+              <Link
+                href="/tienda"
+                className="mt-3 inline-flex w-full justify-center rounded-xl px-4 py-2 text-sm font-semibold text-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
+              >
+                Activar membresía
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Cards */}
-      <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {PLANS.map((p) => {
           const locked = !membership.ok && !p.included;
 
@@ -186,7 +185,7 @@ export default async function PlanificacionesPage() {
             </div>
           );
         })}
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }

@@ -36,17 +36,14 @@ body {
 
 .gradient-border {
   position: relative;
-  border-radius: 1.25rem;
 }
 .gradient-border::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border-radius: 1.25rem;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(0,255,200,0.35), rgba(0,140,255,0.35), rgba(255,255,255,0.05));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+  background: linear-gradient(90deg, rgba(110,231,183,.35), rgba(103,232,249,.25), rgba(125,211,252,.25));
+  filter: blur(14px);
+  opacity: .55;
+  z-index: -1;
 }
