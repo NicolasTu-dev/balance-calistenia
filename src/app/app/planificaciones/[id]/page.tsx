@@ -47,14 +47,20 @@ export default async function PlanByIdPage(props: { params: { id: string } }) {
     );
   }
 
-  const planId = Number(props.params.id);
+  const raw = props.params.id;
+  const planId = parseInt(raw, 10);
+
   if (!Number.isFinite(planId)) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
         <h1 className="text-xl font-semibold">Plan inválido</h1>
+        <p className="mt-2 text-sm text-white/70">
+          Param recibido: <span className="text-white/90 font-mono">{String(raw)}</span>
+        </p>
       </div>
     );
   }
+
 
   const supabase = await supabaseServer();
   const { data: userRes } = await supabase.auth.getUser();
