@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
-import { supabaseServer } from "@/app/lib/supabase/server";
+import { NextResponse } from "next/server";
+import { supabaseRoute } from "@/app/lib/supabase/route";
 
 export const runtime = "nodejs";
 
@@ -163,7 +163,7 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
 }
 
 export async function POST(req: Request) {
-  const supabase = await supabaseServer();
+  const supabase = await supabaseRoute();
   const { data: userRes } = await supabase.auth.getUser();
   const user = userRes.user;
 
