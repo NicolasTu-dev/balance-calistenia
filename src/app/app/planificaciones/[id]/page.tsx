@@ -29,33 +29,27 @@ function dayLabel(day: number) {
   return DAYS[day - 1] ?? "—";
 }
 
-export default async function PlanByIdPage(props: { params: { id: string } }) {
-  const membership = await requireActiveMembership();
-  if (!membership.ok) {
-    return (
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-        <h1 className="text-xl font-semibold">Acceso restringido</h1>
-        <p className="mt-2 text-sm text-white/70">Necesitás membresía activa para ver esta planificación.</p>
-        <Link
-          href="/tienda"
-          className="mt-4 inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold text-black
-                     bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
-        >
-          Activar membresía
-        </Link>
-      </div>
-    );
-  }
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  const raw = props.params.id;
-  const planId = parseInt(raw, 10);
+type PageProps =
+  | { params: { id: string } }
+  | { params: Promise<{ id: string }> };
+
+export default async function PlanByIdPage(props: PageProps) {
+  const resolvedParams =
+    "then" in props.params ? await props.params : props.params;
+
+  const raw = resolvedParams?.id;
+  const planId = raw ? parseInt(raw, 10) : NaN;
 
   if (!Number.isFinite(planId)) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
         <h1 className="text-xl font-semibold">Plan inválido</h1>
         <p className="mt-2 text-sm text-white/70">
-          Param recibido: <span className="text-white/90 font-mono">{String(raw)}</span>
+          Param recibido:{" "}
+          <span className="text-white/90 font-mono">{String(raw)}</span>
         </p>
       </div>
     );
