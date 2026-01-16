@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import { NextResponse } from "next/server";
-import { supabaseRoute } from "@/app/lib/supabase/route";
+import { supabaseRoute } from "@/app/lib/supabase/server-route";
 
 export const runtime = "nodejs";
 
