@@ -68,10 +68,6 @@ export default async function TiendaPage() {
                 Comprar
               </button>
             </form>
-
-            <p className="mt-3 text-xs text-white/50">
-              Nota: la activación se confirma por webhook cuando el pago queda aprobado.
-            </p>
           </div>
         ))}
       </div>
