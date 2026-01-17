@@ -12,10 +12,9 @@ function getPaymentId(reqUrl: URL, body: any): string | null {
   return bId ? String(bId) : null;
 }
 
-
 function verifySignature(req: Request, paymentId: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET;
-  if (!secret) return true; 
+  if (!secret) return true;
 
   const xSignature = req.headers.get("x-signature") ?? "";
   const xRequestId = req.headers.get("x-request-id") ?? "";
@@ -27,6 +26,10 @@ function verifySignature(req: Request, paymentId: string): boolean {
 
   const manifest = `id:${paymentId};request-id:${xRequestId};ts:${ts};`;
   const calc = crypto.createHmac("sha256", secret).update(manifest).digest("hex");
+
+  // Evita excepción si longitudes difieren
+  if (calc.length !== v1.length) return false;
+
   return crypto.timingSafeEqual(Buffer.from(calc), Buffer.from(v1));
 }
 
@@ -34,7 +37,7 @@ export async function POST(req: Request) {
   const url = new URL(req.url);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let body: any = null;
+  let body: any = {};
   try {
     body = await req.json();
   } catch {
@@ -48,12 +51,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "INVALID_SIGNATURE" }, { status: 401 });
   }
 
-  const accessToken = process.env.MP_ACCESS_TOKEN!;
+  const accessToken = process.env.MP_ACCESS_TOKEN;
+  if (!accessToken) {
+    console.error("Webhook missing MP_ACCESS_TOKEN");
+    return NextResponse.json({ error: "MISSING_MP_ACCESS_TOKEN" }, { status: 500 });
+  }
+
   const client = new MercadoPagoConfig({ accessToken });
   const paymentApi = new Payment(client);
 
   const payment = await paymentApi.get({ id: paymentId });
 
+  // Idempotencia simple: solo aprobados activan
   if (payment.status !== "approved") {
     return NextResponse.json({ ok: true });
   }
@@ -66,6 +75,7 @@ export async function POST(req: Request) {
 
   const admin = supabaseAdmin();
 
+  // Producto -> duración
   const { data: product, error: prodErr } = await admin
     .from("products")
     .select("id, duration_days, active")
@@ -73,11 +83,40 @@ export async function POST(req: Request) {
     .single();
 
   if (prodErr || !product || !product.active) {
+    console.error("Webhook product fetch failed", prodErr);
     return NextResponse.json({ error: "PRODUCT_NOT_FOUND" }, { status: 404 });
   }
 
   const durationDays = product.duration_days ?? 30;
-  const expiresAt = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString();
+
+  // Leer membresía actual para extender correctamente
+  const { data: current, error: curErr } = await admin
+    .from("memberships")
+    .select("user_id, status, started_at, expires_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (curErr) {
+    console.error("Webhook membership fetch failed", curErr);
+    return NextResponse.json({ error: "MEMBERSHIP_FETCH_FAILED" }, { status: 500 });
+  }
+
+  const now = new Date();
+
+  const currentExpires =
+    current?.expires_at ? new Date(current.expires_at) : null;
+
+  const baseDate =
+    currentExpires && currentExpires.getTime() > now.getTime()
+      ? currentExpires
+      : now;
+
+  const newExpiresAt = new Date(
+    baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  // started_at: mantener si existe, setear solo si no existe
+  const startedAt = current?.started_at ?? now.toISOString();
 
   const { error: upErr } = await admin
     .from("memberships")
@@ -85,14 +124,15 @@ export async function POST(req: Request) {
       {
         user_id: userId,
         status: "active",
-        started_at: new Date().toISOString(),
-        expires_at: expiresAt,
-        updated_at: new Date().toISOString(),
+        started_at: startedAt,
+        expires_at: newExpiresAt,
+        updated_at: now.toISOString(),
       },
       { onConflict: "user_id" }
     );
 
   if (upErr) {
+    console.error("Webhook membership upsert failed", upErr);
     return NextResponse.json({ error: "DB_UPDATE_FAILED" }, { status: 500 });
   }
 
