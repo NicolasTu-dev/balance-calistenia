@@ -37,14 +37,14 @@ export default async function ProgramaDetailPage({
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h3 className="font-semibold">Para quién es</h3>
           <p className="mt-2 text-sm opacity-80">
-            (v2) Si querés, sumamos campos en DB como{" "}
+            (v2) proximamente sumamos campos como{" "}
             <code>audience</code> / <code>requirements</code>.
           </p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h3 className="font-semibold">Qué vas a lograr</h3>
           <p className="mt-2 text-sm opacity-80">
-            (v2) Sumamos <code>outcomes</code> y lo listamos con bullets.
+            (v2) proximamente sumamos <code>resultados</code>.
           </p>
         </div>
       </div>
