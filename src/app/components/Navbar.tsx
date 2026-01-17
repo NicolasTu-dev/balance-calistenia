@@ -6,7 +6,7 @@ import { supabaseServer } from "@/app/lib/supabase/server";
 
 const navItems = [
   { href: "/", label: "Inicio" },
-  { href: "/programas", label: "Programas" },
+  { href: "/programas", label: "Cursos" },
   { href: "/tienda", label: "Tienda" },
 ];
 

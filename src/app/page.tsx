@@ -1,147 +1,185 @@
 import Link from "next/link";
-import { MapPin, Sparkles, ChevronRight } from "lucide-react";
-import CodeRedirect from "./CodeRedirect";
-import { supabaseServer } from "@/app/lib/supabase/server";
-import { requireActiveMembership } from "@/app/lib/supabase/access";
 
-export default async function Home() {
-  const supabase = await supabaseServer();
-  const { data: userRes } = await supabase.auth.getUser();
-  const user = userRes.user ?? null;
-
-  const membership = user
-    ? await requireActiveMembership()
-    : ({ ok: false as const, reason: "no_user" } as const);
-
-  // Un único CTA: si hay sesión, va directo a planificaciones; si no, login
-  const ctaHref = user ? "/app/planificaciones" : "/login";
-
+export default function HomePage() {
   return (
-    <main className="min-h-[calc(100vh-64px)]">
-      <CodeRedirect />
+    <main className="mx-auto max-w-6xl px-6 py-14">
+      {/* HERO */}
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-10 backdrop-blur">
+        <p className="text-sm font-medium uppercase tracking-wide text-white/70">
+          Calistenia • Fuerza • Skills
+        </p>
 
-      <section className="max-w-6xl mx-auto px-6 pt-14 pb-14">
-        <div className="grid lg:grid-cols-2 gap-10 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
-              <Sparkles className="h-3.5 w-3.5 text-emerald-200" />
-              Planificaciones reales • Acceso inmediato
-            </div>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">
+          Entrená con estructura. <span className="text-white/80">Progresá con calistenia.</span>
+        </h1>
 
-            <h1 className="mt-6 text-4xl md:text-5xl font-bold tracking-tight">
-              Entrená con estructura.
-              <span className="block text-white/70">Progresá con calistenia.</span>
-            </h1>
+        <p className="mt-5 max-w-2xl text-base text-white/70">
+          Bienvenido a Balance: programas y planificación progresiva para mejorar rendimiento,
+          técnica y control corporal de forma segura y sostenida en el tiempo.
+        </p>
 
-            <p className="mt-5 text-white/70 text-lg leading-relaxed max-w-xl">
-              Balance Calistenia combina fuerza, skills y planificación semanal para que tengas un camino claro:
-              qué hacer, cuándo hacerlo y cómo progresar.
-            </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/programas"
+            className="rounded-xl border border-white/10 bg-white/10 px-5 py-3 text-sm hover:bg-white/15"
+          >
+            Ver programas
+          </Link>
 
-            {/* UN SOLO BOTÓN */}
-            <div className="mt-8">
-              <Link
-                href={ctaHref}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 font-semibold text-black
-                           bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
-              >
-                Ir a mi planificación
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-black/10">
-                  <ChevronRight className="h-4 w-4" />
-                </span>
-              </Link>
+          <Link
+            href="/tienda"
+            className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm hover:bg-white/10"
+          >
+            Ir a tienda
+          </Link>
 
-              <p className="mt-3 text-sm text-white/60">
-                {user
-                  ? "Accedé directo a tu panel."
-                  : "Ingresá con tu email y empezá a entrenar con estructura."}
-              </p>
-            </div>
-
-            {user && (
-              <div className="mt-5 text-sm text-white/60">
-                Sesión: <span className="text-white/80 font-medium">{user.email}</span>
-                {membership.ok && (
-                  <span className="ml-2 inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-0.5 text-xs text-emerald-200">
-                    Membresía activa
-                  </span>
-                )}
-              </div>
-            )}
-
-            <div className="mt-8 flex flex-wrap gap-2 text-sm text-white/60">
-              {["Fuerza", "Movilidad", "Skills", "Descenso de peso", "Progresiones"].map((t) => (
-                <span
-                  key={t}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="gradient-border">
-            <div className="rounded-[1.25rem] bg-white/5 border border-white/10 p-6">
-              <h2 className="text-lg font-semibold">Qué incluye la membresía</h2>
-              <ul className="mt-4 space-y-3 text-white/70 text-sm">
-                <li>• Planificaciones mensuales y semanales</li>
-                <li>• Estructura por bloques (Básicos / Skills)</li>
-                <li>• Ejercicios + series + notas</li>
-                <li>• Acceso desde cualquier dispositivo</li>
-                <li>• Gestión simple por alumno</li>
-              </ul>
-
-              <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
-                <div className="flex items-center gap-2 font-medium text-white">
-                  <MapPin className="h-4 w-4 text-emerald-300" />
-                  Plaza Giordano Bruno — Caballito
-                </div>
-                <div className="mt-1 text-white/60">
-                  Entrenamientos presenciales + acceso online a la plataforma.
-                </div>
-              </div>
-
-              {/* Dejamos sólo estado visual; NO CTA extra */}
-              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                {user ? (
-                  membership.ok ? (
-                    <span>Tu acceso está activo. Entrá al panel para ver tus planificaciones.</span>
-                  ) : (
-                    <span>Tenés sesión iniciada, pero todavía no tenés membresía activa.</span>
-                  )
-                ) : (
-                  <span>Ingresá con tu email para acceder a tu panel.</span>
-                )}
-              </div>
-            </div>
-          </div>
+          <Link
+            href="/app"
+            className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm hover:bg-white/10"
+          >
+            Entrar a mi panel
+          </Link>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="grid md:grid-cols-3 gap-4">
+      {/* QUÉ ES */}
+      <section className="mt-14">
+        <h2 className="text-2xl font-semibold">¿Qué es Balance Calistenia?</h2>
+
+        <div className="mt-5 space-y-4 text-white/70">
+          <p>
+            Balance Calistenia es un sistema de entrenamiento enfocado en desarrollar fuerza,
+            resistencia y skills a través de la calistenia, con una planificación clara y progresiva.
+          </p>
+
+          <p>
+            Nació para resolver uno de los mayores problemas del entrenamiento con el peso corporal:
+            entrenar sin estructura y sin saber cómo progresar.
+          </p>
+
+          <p>
+            En Balance no entrenás al azar. Cada plan tiene un objetivo, una lógica y un camino definido,
+            adaptado a tu nivel y a tus capacidades.
+          </p>
+
+          <p>
+            El enfoque combina calistenia clásica, preparación física y experiencia real en el entrenamiento,
+            para que mejores rendimiento, técnica y control corporal de forma segura y sostenida en el tiempo.
+          </p>
+        </div>
+      </section>
+
+      {/* SERVICIOS */}
+      <section className="mt-14">
+        <div className="flex items-end justify-between gap-6">
+          <div>
+            <h2 className="text-2xl font-semibold">Servicios</h2>
+            <p className="mt-2 text-white/70">
+              Elegí el formato que mejor se adapte a tu nivel, objetivo y disponibilidad.
+            </p>
+          </div>
+          <Link
+            href="/tienda"
+            className="hidden rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 md:inline-block"
+          >
+            Ver opciones
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
           {[
-            { title: "Descenso de peso + fuerza", desc: "Planificación para quemar grasa sin perder rendimiento." },
-            { title: "Skills & Control", desc: "Progresiones para handstand, muscle-up, front lever y más." },
-            { title: "Estética & Volumen", desc: "Construcción equilibrada con calistenia y accesorios." },
-          ].map((c) => (
-            <div
-              key={c.title}
-              className="rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/7 transition"
-            >
-              <div className="font-semibold">{c.title}</div>
-              <div className="mt-2 text-sm text-white/65">{c.desc}</div>
+            {
+              title: "Calistenia personalizada (presencial o virtual)",
+              desc: "Plan y seguimiento 1:1, con progresión semanal y ajustes según tu rendimiento.",
+            },
+            {
+              title: "Calistenia recreativa",
+              desc: "Constancia, fuerza general y salud. Ideal para mejorar sin presión competitiva.",
+            },
+            {
+              title: "Calistenia competitiva",
+              desc: "Preparación orientada a competencia: rendimiento, técnica, volumen e intensidad.",
+            },
+            {
+              title: "Calistenia para adultos mayores",
+              desc: "Movilidad, postura y fuerza funcional para entrenar seguro y con continuidad.",
+            },
+          ].map((s) => (
+            <div key={s.title} className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <h3 className="text-lg font-semibold">{s.title}</h3>
+              <p className="mt-2 text-sm text-white/70">{s.desc}</p>
+              <p className="mt-4 text-xs text-white/50">
+                Próximo: packs 1/3/6/9/12 meses con descuentos.
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      <footer className="border-t border-white/5 bg-black/20">
-        <div className="max-w-6xl mx-auto px-6 py-10 text-sm text-white/50">
-          © {new Date().getFullYear()} Balance Calistenia — MVP.
+      {/* PROGRAMAS */}
+      <section className="mt-14">
+        <h2 className="text-2xl font-semibold">Programas de entrenamiento Balance</h2>
+        <p className="mt-2 text-white/70">
+          Dos formas de entrenar: por nivel o por objetivo.
+        </p>
+
+        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <h3 className="text-lg font-semibold">1) Balance por Nivel</h3>
+            <p className="mt-2 text-sm text-white/70">
+              Construí base, resistencia y fortaleza. Progresión hacia skills:
+              muscle up, back lever, vertical, front lever, plancha.
+            </p>
+            <Link
+              href="/programas"
+              className="mt-5 inline-block rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
+            >
+              Ver programas por nivel
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <h3 className="text-lg font-semibold">2) Balance por Objetivos</h3>
+            <p className="mt-2 text-sm text-white/70">
+              Tu primera dominada, calistenia en casa, cambio físico 90 días,
+              fuerza total, descenso de peso.
+            </p>
+            <Link
+              href="/programas"
+              className="mt-5 inline-block rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
+            >
+              Ver programas por objetivos
+            </Link>
+          </div>
         </div>
-      </footer>
+      </section>
+
+      {/* RESULTADOS (placeholder, listo para reemplazar por imágenes reales) */}
+      <section className="mt-14">
+        <h2 className="text-2xl font-semibold">Resultados reales</h2>
+        <p className="mt-2 text-white/70">
+          Fotos y video de progreso (estético y fuerza). Próximo: galería + testimonios.
+        </p>
+
+        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="aspect-video rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/60"
+            >
+              Placeholder foto/video #{i}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FUTURO: PROFESORES */}
+      <section className="mt-14 rounded-3xl border border-white/10 bg-white/5 p-8">
+        <h2 className="text-2xl font-semibold">Próximamente</h2>
+        <p className="mt-2 text-white/70">
+          Más profesores, variedad de enfoques y contenido específico por especialidad.
+        </p>
+      </section>
     </main>
   );
 }
