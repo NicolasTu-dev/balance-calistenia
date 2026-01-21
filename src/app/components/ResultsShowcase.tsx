@@ -28,16 +28,16 @@ export default function ResultsShowcase() {
                     "Hoy entiendo que cualquier cosa que me proponga implica convivir con el error, aprender, y después el resto viene solo. Mientras uno siga adelante, es imparable, y el límite lo ponemos nosotros.\n\n" +
                     "Tanto física como mentalmente, mi cambio fue abrupto, y pretendo que así siga siendo.",
                 videos: [
-                    { src: "/results/ivo-1.mp4", label: "Video 1" },
-                    { src: "/results/ivo-2.mp4", label: "Video 2" },
+                    { src: "/results/ivoMuscleViejo.mp4", label: "Video 1" },
+                    { src: "/results/ivoMuscleNuevo.mp4", label: "Video 2" },
                 ],
             },
             {
                 id: "nicolas",
                 name: "Nicolás",
                 subtitle: "28 años • constancia y estructura",
-                avatarSrc: "/results/nicolas.jpg",
-                heroImageSrc: "/results/nicolas.jpg",
+                avatarSrc: "/results/nico.jpg",
+                heroImageSrc: "/results/nico.jpg",
                 story:
                     "Mi nombre es Nicolás y tengo 28 años. Hace aproximadamente 5 años que estoy en el mundo de la calistenia.\n\n" +
                     "Comencé entrenando en clases grupales en 2022, y en 2023 formé parte de otro grupo, manteniendo ambos durante unos seis meses. Sin embargo, no había una estructura ni una metodología clara que me permitiera progresar y obtener resultados reales.\n\n" +
