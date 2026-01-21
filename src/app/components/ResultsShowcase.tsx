@@ -28,8 +28,8 @@ export default function ResultsShowcase() {
                     "Hoy entiendo que cualquier cosa que me proponga implica convivir con el error, aprender, y después el resto viene solo. Mientras uno siga adelante, es imparable, y el límite lo ponemos nosotros.\n\n" +
                     "Tanto física como mentalmente, mi cambio fue abrupto, y pretendo que así siga siendo.",
                 videos: [
-                    { src: "/results/ivoMuscleViejo.mp4"},
-                    { src: "/results/ivoMuscleNuevo.mp4"},
+                    { src: "/results/ivoMuscleViejo.mp4", label: "Antes de balance" },
+                    { src: "/results/ivoMuscleNuevo.mp4", label: "Ahora" },
                 ],
             },
             {
@@ -45,8 +45,8 @@ export default function ResultsShowcase() {
                     "Pasé mucho tiempo sin entrenar hasta que conocí Balance Calistenia y a su profe, Agustín. Acá encontré todo lo que necesitaba para volver a conectar con la calistenia: estructura, planificación, aprendizaje y disciplina.\n\n" +
                     "Fue un camino de reeducación corporal y mental, con caídas y victorias, pero sobre todo de superación personal. Hoy soy mejor atleta y sigo creciendo día a día.",
                 videos: [
-                    { src: "/results/nicoFrontViejo.mp4"},
-                    { src: "/results/nicoFrontNuevo.mp4"},
+                    { src: "/results/nicoFrontViejo.mp4", label: "Antes de balance" },
+                    { src: "/results/nicoFrontNuevo.mp4", label: "Ahora" },
                 ],
             },
             {
