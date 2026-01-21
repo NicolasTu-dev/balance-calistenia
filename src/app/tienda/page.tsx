@@ -44,7 +44,7 @@ export default async function TiendaPage() {
       "id, slug, name, description, mp_title, price_cents, currency, duration_days, active, category, product_type"
     )
     .eq("active", true)
-    .eq("product_type", "service")
+    .in("product_type", ["service", "merch"])
     .order("category", { ascending: true })
     .order("duration_days", { ascending: true })
     .order("price_cents", { ascending: true });

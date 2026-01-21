@@ -19,11 +19,10 @@ export async function POST(req: Request) {
       return NextResponse.redirect(new URL("/login?next=/tienda", req.url), { status: 303 });
     }
 
-    // ✅ leer products con service role para evitar RLS/PolicyAgent
     const admin = supabaseAdmin();
     const { data: product, error: prodErr } = await admin
       .from("products")
-      .select("id, mp_title, price_cents, currency, duration_days, active")
+      .select("id, mp_title, price_cents, currency, duration_days, active, product_type")
       .eq("id", productId)
       .single();
 
@@ -41,7 +40,10 @@ export async function POST(req: Request) {
     const client = new MercadoPagoConfig({ accessToken });
     const preference = new Preference(client);
 
-    const externalReference = `${userData.user.id}:${product.id}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const productType = (product as any).product_type ?? "service";
+    const externalReference = `${userData.user.id}:${product.id}:${productType}`;
+
 
     const pref = await preference.create({
       body: {

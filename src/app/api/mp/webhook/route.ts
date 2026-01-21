@@ -33,6 +33,11 @@ function verifySignature(req: Request, paymentId: string): boolean {
   return crypto.timingSafeEqual(Buffer.from(calc), Buffer.from(v1));
 }
 
+function isDuplicateInsertError(msg?: string) {
+  const m = (msg ?? "").toLowerCase();
+  return m.includes("duplicate") || m.includes("unique") || m.includes("already exists");
+}
+
 export async function POST(req: Request) {
   const url = new URL(req.url);
 
@@ -62,23 +67,33 @@ export async function POST(req: Request) {
 
   const payment = await paymentApi.get({ id: paymentId });
 
-  // Idempotencia simple: solo aprobados activan
+  // Solo pagos aprobados aplican
   if (payment.status !== "approved") {
     return NextResponse.json({ ok: true });
   }
 
+  // external_reference esperado:
+  // v2: userId:productId:productType
+  // v1: userId:productId
   const ext = payment.external_reference ?? "";
-  const [userId, productId] = ext.split(":");
-  if (!userId || !productId) {
+  const [userId, productIdRaw, productTypeRaw] = ext.split(":");
+  if (!userId || !productIdRaw) {
     return NextResponse.json({ error: "MISSING_EXTERNAL_REFERENCE" }, { status: 400 });
   }
 
+  const productId = Number(productIdRaw);
+  if (!Number.isFinite(productId)) {
+    return NextResponse.json({ error: "INVALID_PRODUCT_ID" }, { status: 400 });
+  }
+
+  const hintedProductType = productTypeRaw ?? "service";
+
   const admin = supabaseAdmin();
 
-  // Producto -> duración
+  // Traer producto (products.id es bigint en tu DB)
   const { data: product, error: prodErr } = await admin
     .from("products")
-    .select("id, duration_days, active")
+    .select("id, duration_days, active, product_type, price_cents, currency")
     .eq("id", productId)
     .single();
 
@@ -87,9 +102,41 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "PRODUCT_NOT_FOUND" }, { status: 404 });
   }
 
+  const effectiveType = (product.product_type ?? hintedProductType) as string;
+
+  // =========================
+  // MERCH -> crear orden
+  // =========================
+  if (effectiveType === "merch") {
+    const amountCents = typeof product.price_cents === "number" ? product.price_cents : 0;
+    const currency = product.currency ?? "ARS";
+
+    const { error: orderErr } = await admin.from("orders").insert({
+      user_id: userId,
+      product_id: product.id, // bigint
+      mp_payment_id: String(payment.id),
+      mp_status: String(payment.status),
+      amount_cents: amountCents,
+      currency,
+      quantity: 1,
+      fulfillment_status: "pending",
+      updated_at: new Date().toISOString(),
+    });
+
+    // Webhook puede repetirse: si ya existe, ok
+    if (orderErr && !isDuplicateInsertError(orderErr.message)) {
+      console.error("Order insert failed", orderErr);
+      return NextResponse.json({ error: "ORDER_CREATE_FAILED" }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  }
+
+  // =========================
+  // SERVICE -> extender membresía
+  // =========================
   const durationDays = product.duration_days ?? 30;
 
-  // Leer membresía actual para extender correctamente
   const { data: current, error: curErr } = await admin
     .from("memberships")
     .select("user_id, status, started_at, expires_at")
@@ -103,8 +150,7 @@ export async function POST(req: Request) {
 
   const now = new Date();
 
-  const currentExpires =
-    current?.expires_at ? new Date(current.expires_at) : null;
+  const currentExpires = current?.expires_at ? new Date(current.expires_at) : null;
 
   const baseDate =
     currentExpires && currentExpires.getTime() > now.getTime()
@@ -115,7 +161,6 @@ export async function POST(req: Request) {
     baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  // started_at: mantener si existe, setear solo si no existe
   const startedAt = current?.started_at ?? now.toISOString();
 
   const { error: upErr } = await admin
