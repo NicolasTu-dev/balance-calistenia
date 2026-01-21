@@ -28,14 +28,14 @@ export default function ResultsShowcase() {
                     "Hoy entiendo que cualquier cosa que me proponga implica convivir con el error, aprender, y después el resto viene solo. Mientras uno siga adelante, es imparable, y el límite lo ponemos nosotros.\n\n" +
                     "Tanto física como mentalmente, mi cambio fue abrupto, y pretendo que así siga siendo.",
                 videos: [
-                    { src: "/results/ivoMuscleViejo.mp4", label: "Video 1" },
-                    { src: "/results/ivoMuscleNuevo.mp4", label: "Video 2" },
+                    { src: "/results/ivoMuscleViejo.mp4"},
+                    { src: "/results/ivoMuscleNuevo.mp4"},
                 ],
             },
             {
                 id: "nicolas",
                 name: "Nicolás",
-                subtitle: "28 años • constancia y estructura",
+                subtitle: "Constancia y estructura",
                 avatarSrc: "/results/nico.jpg",
                 heroImageSrc: "/results/nico.jpg",
                 story:
@@ -45,14 +45,14 @@ export default function ResultsShowcase() {
                     "Pasé mucho tiempo sin entrenar hasta que conocí Balance Calistenia y a su profe, Agustín. Acá encontré todo lo que necesitaba para volver a conectar con la calistenia: estructura, planificación, aprendizaje y disciplina.\n\n" +
                     "Fue un camino de reeducación corporal y mental, con caídas y victorias, pero sobre todo de superación personal. Hoy soy mejor atleta y sigo creciendo día a día.",
                 videos: [
-                    { src: "/results/nicoFrontViejo.mp4", label: "Video 1" },
-                    { src: "/results/nicoFrontNuevo.mp4", label: "Video 2" },
+                    { src: "/results/nicoFrontViejo.mp4"},
+                    { src: "/results/nicoFrontNuevo.mp4"},
                 ],
             },
             {
                 id: "santino",
                 name: "Santino",
-                subtitle: "14 años • de 0 dominadas a skills",
+                subtitle: "De 0 dominadas a skills",
                 avatarSrc: "/results/santino2.jpeg",
                 heroImageSrc: "/results/santino2.jpeg",
                 story:
@@ -62,8 +62,8 @@ export default function ResultsShowcase() {
                     "Hoy estoy mucho más fuerte: hago dominadas y fondos con peso, entreno hipertrofia, saco vertical y estoy aprendiendo y mejorando trucos como el back lever.\n\n" +
                     "Logré dominar los básicos de la calistenia y sigo entrenando para ganar masa muscular, fuerza y nuevas habilidades.",
                 videos: [
-                    { src: "/results/santino1video.mp4", label: "Video 1" },
-                    { src: "/results/santino2video.mp4", label: "Video 2" },
+                    { src: "/results/santino1video.mp4"},
+                    { src: "/results/santino2video.mp4"},
                 ],
             },
         ],
