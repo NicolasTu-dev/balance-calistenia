@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getActiveResultsMedia } from "@/app/lib/results/queries";
-import { ResultsGallery } from "@/app/components/ResultsGallery";
+import ResultsShowcase from "@/app/components/ResultsShowcase";
+
 
 export const dynamic = "force-dynamic";
 
@@ -162,20 +163,7 @@ export default async function HomePage() {
       {/* RESULTADOS REALES */}
       <section className="mt-14">
         <h2 className="text-2xl font-semibold">Resultados reales</h2>
-        <p className="mt-2 text-white/70">
-          Fotos y video de progreso (estético y fuerza). Próximo: galería + testimonios.
-        </p>
-
-        <ResultsGallery items={results} />
-      </section>
-
-
-      {/* FUTURO: PROFESORES */}
-      <section className="mt-14 rounded-3xl border border-white/10 bg-white/5 p-8">
-        <h2 className="text-2xl font-semibold">Próximamente</h2>
-        <p className="mt-2 text-white/70">
-          Más profesores, variedad de enfoques y contenido específico por especialidad.
-        </p>
+        <ResultsShowcase/>
       </section>
     </main>
   );
