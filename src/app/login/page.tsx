@@ -42,7 +42,6 @@ export default function LoginPage() {
   }
 
   function openWebmail() {
-    // Helper simple (no perfecto, pero cómodo)
     window.open("https://mail.google.com", "_blank", "noopener,noreferrer");
   }
 

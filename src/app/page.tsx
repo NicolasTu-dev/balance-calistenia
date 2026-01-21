@@ -162,7 +162,6 @@ export default async function HomePage() {
 
       {/* RESULTADOS REALES */}
       <section className="mt-14">
-        <h2 className="text-2xl font-semibold">Resultados reales</h2>
         <ResultsShowcase/>
       </section>
     </main>
