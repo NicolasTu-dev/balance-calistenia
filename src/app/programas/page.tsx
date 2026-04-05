@@ -57,7 +57,7 @@ export default async function ProgramasPage() {
                   </span>
 
                   <Link
-                    href={locked ? "/tienda" : `/programas/${c.id}`}
+                    href={locked ? "/precios" : `/programas/${c.id}`}
                     className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm hover:bg-white/15"
                   >
                     {locked ? "Activar membresía" : "Ver curso"}

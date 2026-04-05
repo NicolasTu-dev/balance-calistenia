@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getActiveResultsMedia } from "@/app/lib/results/queries";
 import ResultsShowcase from "@/app/components/ResultsShowcase";
+import CoachSection from "@/app/components/CoachSection";
 
 export const metadata = {
   title: "Balance Calistenia — Entrená con estructura",
@@ -175,6 +176,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* QUIÉN SOY */}
+      <CoachSection />
 
       {/* RESULTADOS REALES */}
       <section id="resultados" className="mt-14">

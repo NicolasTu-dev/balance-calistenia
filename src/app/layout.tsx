@@ -1,6 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
+import WhatsAppButton from "@/app/components/WhatsAppButton";
 
 export const metadata: Metadata = {
   title: { default: "Balance Calistenia", template: "%s — Balance Calistenia" },
@@ -22,9 +24,13 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="min-h-screen bg-zinc-950 text-white">
-        <div className="noise min-h-screen">
+        <div className="noise min-h-screen flex flex-col">
           <Navbar />
-          {children}
+          <div className="flex-1">
+            {children}
+          </div>
+          <Footer />
+          <WhatsAppButton />
         </div>
       </body>
     </html>
