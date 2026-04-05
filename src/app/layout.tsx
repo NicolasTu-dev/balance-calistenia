@@ -3,8 +3,15 @@ import type { Metadata } from "next";
 import Navbar from "@/app/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Balance Calistenia",
-  description: "Planificaciones y membresías de calistenia",
+  title: { default: "Balance Calistenia", template: "%s — Balance Calistenia" },
+  description: "Planificación mensual de calistenia con seguimiento personalizado. Fuerza, skills y progresión real.",
+  openGraph: {
+    title: "Balance Calistenia",
+    description: "Planificación mensual de calistenia con seguimiento personalizado.",
+    siteName: "Balance Calistenia",
+    locale: "es_AR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

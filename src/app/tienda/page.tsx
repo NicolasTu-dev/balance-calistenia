@@ -1,5 +1,7 @@
 import ProductCard, { type Product } from "./components/ProductCard";
 
+export const metadata = { title: "Tienda", description: "Merch oficial de Balance Calistenia. Remeras y shorts." };
+
 const PRODUCTS: Product[] = [
   {
     id: "remera-dragon",

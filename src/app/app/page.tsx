@@ -62,21 +62,17 @@ export default async function AppHome() {
             <div className="space-y-2">
               <p className="font-medium">Sin acceso</p>
               <Link
-                href="/tienda"
+                href="/precios"
                 className="inline-block rounded-xl bg-black text-white px-4 py-2 text-sm"
               >
-                Activar membresía
+                Hacerme Socio
               </Link>
-              <p className="text-xs text-gray-600">
-                (Para demo: podés activar la membresía desde el SQL insertando un
-                entitlement)
-              </p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4 mt-6">
+      <div className="grid gap-4 mt-6">
         <Link
           className="rounded-2xl border p-5 hover:shadow-sm"
           href="/app/planificaciones"
@@ -84,16 +80,6 @@ export default async function AppHome() {
           <h2 className="font-semibold">Planificaciones</h2>
           <p className="text-sm text-gray-600 mt-1">
             Ver tu planificación mensual en formato semanal.
-          </p>
-        </Link>
-
-        <Link
-          className="rounded-2xl border p-5 hover:shadow-sm"
-          href="/app/videos"
-        >
-          <h2 className="font-semibold">Videos</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Biblioteca de ejercicios (próximamente).
           </p>
         </Link>
       </div>

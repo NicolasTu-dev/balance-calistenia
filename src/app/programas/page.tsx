@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { listCourses, isMembershipActive } from "@/app/lib/courses/queries";
 
+export const metadata = { title: "Cursos", description: "Cursos grabados, clases en vivo y mentorías de calistenia." };
+
 export const dynamic = "force-dynamic";
 
 export default async function ProgramasPage() {

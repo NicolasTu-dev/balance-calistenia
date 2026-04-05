@@ -2,6 +2,11 @@ import Link from "next/link";
 import { getActiveResultsMedia } from "@/app/lib/results/queries";
 import ResultsShowcase from "@/app/components/ResultsShowcase";
 
+export const metadata = {
+  title: "Balance Calistenia — Entrená con estructura",
+  description:
+    "Planificación mensual de calistenia con seguimiento personalizado. Fuerza, skills y progresión real.",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -26,24 +31,24 @@ export default async function HomePage() {
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/programas"
-            className="rounded-xl border border-white/10 bg-white/10 px-5 py-3 text-sm hover:bg-white/15"
+            href="/precios"
+            className="rounded-xl px-5 py-3 text-sm font-semibold text-black bg-linear-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
           >
-            Ver programas
+            Hacerme Socio
           </Link>
 
           <Link
-            href="/tienda"
+            href="#resultados"
             className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm hover:bg-white/10"
           >
-            Ir a tienda
+            Ver resultados
           </Link>
 
           <Link
             href="/app"
-            className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm hover:bg-white/10"
+            className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-white/60 hover:bg-white/10 hover:text-white transition"
           >
-            Entrar a mi panel
+            Mi panel
           </Link>
         </div>
       </section>
@@ -77,48 +82,59 @@ export default async function HomePage() {
 
       {/* SERVICIOS */}
       <section className="mt-14">
-        <div className="flex items-end justify-between gap-6">
-          <div>
-            <h2 className="text-2xl font-semibold">Servicios</h2>
-            <p className="mt-2 text-white/70">
-              Elegí el formato que mejor se adapte a tu nivel, objetivo y disponibilidad.
-            </p>
-          </div>
-          <Link
-            href="/tienda"
-            className="hidden rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 md:inline-block"
-          >
-            Ver opciones
-          </Link>
-        </div>
+        <h2 className="text-2xl font-semibold">Lo que ofrecemos</h2>
+        <p className="mt-2 text-white/70">
+          Una planificación mensual de calistenia, diseñada para tu nivel y objetivo.
+        </p>
 
         <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-          {[
-            {
-              title: "Calistenia personalizada (presencial o virtual)",
-              desc: "Plan y seguimiento 1:1, con progresión semanal y ajustes según tu rendimiento.",
-            },
-            {
-              title: "Calistenia recreativa",
-              desc: "Constancia, fuerza general y salud. Ideal para mejorar sin presión competitiva.",
-            },
-            {
-              title: "Calistenia competitiva",
-              desc: "Preparación orientada a competencia: rendimiento, técnica, volumen e intensidad.",
-            },
-            {
-              title: "Calistenia para adultos mayores",
-              desc: "Movilidad, postura y fuerza funcional para entrenar seguro y con continuidad.",
-            },
-          ].map((s) => (
-            <div key={s.title} className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <h3 className="text-lg font-semibold">{s.title}</h3>
-              <p className="mt-2 text-sm text-white/70">{s.desc}</p>
-              <p className="mt-4 text-xs text-white/50">
-                Próximo: packs 1/3/6/9/12 meses con descuentos.
-              </p>
+          {/* Main service card */}
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col">
+            <div>
+              <span className="inline-block rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                Plan mensual
+              </span>
+              <h3 className="mt-3 text-lg font-semibold">Planificación mensual</h3>
+              <p className="mt-1 text-xl font-bold text-white/90">$40.000 ARS / mes</p>
             </div>
-          ))}
+            <ul className="mt-4 space-y-2">
+              {[
+                "Plan personalizado según tu nivel y objetivo",
+                "Acceso a tu panel de alumno con todas las semanas",
+                "Se actualiza cada mes",
+                "Soporte continuo por WhatsApp",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-white/70">
+                  <span className="mt-0.5 text-emerald-400">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6">
+              <Link
+                href="/precios"
+                className="inline-block rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm hover:bg-white/15 transition"
+              >
+                Ver precios y consultar →
+              </Link>
+            </div>
+          </div>
+
+          {/* Merch card */}
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col">
+            <h3 className="text-lg font-semibold">Merch Balance</h3>
+            <p className="mt-2 text-sm text-white/70">
+              Remeras y shorts oficiales de Balance Calistenia.
+            </p>
+            <div className="mt-6">
+              <Link
+                href="/tienda"
+                className="inline-block rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm hover:bg-white/15 transition"
+              >
+                Ver tienda →
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -161,7 +177,7 @@ export default async function HomePage() {
       </section>
 
       {/* RESULTADOS REALES */}
-      <section className="mt-14">
+      <section id="resultados" className="mt-14">
         <ResultsShowcase/>
       </section>
     </main>

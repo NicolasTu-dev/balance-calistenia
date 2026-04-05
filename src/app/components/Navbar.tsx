@@ -3,11 +3,13 @@ import Link from "next/link";
 import { cn } from "@/app/lib/utils";
 import { requireActiveMembership } from "@/app/lib/supabase/access";
 import { supabaseServer } from "@/app/lib/supabase/server";
+import NavbarMobile from "@/app/components/NavbarMobile";
 
 const navItems = [
   { href: "/", label: "Inicio" },
-  { href: "/programas", label: "Cursos" },
+  { href: "/precios", label: "Precios" },
   { href: "/tienda", label: "Tienda" },
+  { href: "/programas", label: "Cursos" },
 ];
 
 export default async function Navbar() {
@@ -77,15 +79,15 @@ export default async function Navbar() {
 
             {showActivate && (
               <Link
-                href="/tienda"
+                href="/precios"
                 className={cn(
                   "inline-flex items-center justify-center",
                   "rounded-xl px-4 py-2 text-sm font-semibold",
-                  "text-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300",
+                  "text-black bg-linear-to-r from-emerald-300 via-cyan-300 to-sky-300",
                   "hover:opacity-90 transition"
                 )}
               >
-                Activar membresía
+                Hacerme Socio
               </Link>
             )}
 
@@ -109,6 +111,11 @@ export default async function Navbar() {
                 </button>
               </form>
             )}
+            <NavbarMobile
+              isAuthed={!!user}
+              hasMembership={membership.ok}
+              navItems={navItems}
+            />
           </div>
         </div>
       </div>
