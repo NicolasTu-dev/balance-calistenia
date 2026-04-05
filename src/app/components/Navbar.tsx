@@ -4,6 +4,7 @@ import { cn } from "@/app/lib/utils";
 import { requireActiveMembership } from "@/app/lib/supabase/access";
 import { supabaseServer } from "@/app/lib/supabase/server";
 import NavbarMobile from "@/app/components/NavbarMobile";
+import NavLinks from "@/app/components/NavLinks";
 
 const navItems = [
   { href: "/", label: "Inicio" },
@@ -42,26 +43,7 @@ export default async function Navbar() {
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-sm text-white/70 hover:text-white transition"
-              >
-                {item.label}
-              </Link>
-            ))}
-
-            {user && (
-              <Link
-                href="/app/planificaciones"
-                className="text-sm text-white/70 hover:text-white transition"
-              >
-                Mi panel
-              </Link>
-            )}
-          </nav>
+          <NavLinks items={navItems} isAuthed={!!user} />
 
           <div className="flex items-center gap-3">
             {!user && (
