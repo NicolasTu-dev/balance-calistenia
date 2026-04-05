@@ -15,7 +15,9 @@ export async function getCurrentUserRole(): Promise<UserRole> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return 'no_socio';
 
-  const { data } = await supabase
+  // Usamos admin client para bypassear RLS y leer el rol correctamente
+  const admin = supabaseAdmin();
+  const { data } = await admin
     .from('user_roles')
     .select('role')
     .eq('user_id', userData.user.id)
