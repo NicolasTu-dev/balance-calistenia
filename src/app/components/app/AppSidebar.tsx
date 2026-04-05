@@ -5,7 +5,7 @@ import { getCurrentUserRole } from "@/app/lib/supabase/roles";
 
 export default async function AppSidebar() {
   const role = await getCurrentUserRole();
-  const isAdmin = role === 'administrador' || role === 'fundador';
+  const isAdmin = role === 'administrador';
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">

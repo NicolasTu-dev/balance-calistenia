@@ -26,7 +26,7 @@ export async function getCurrentUserRole(): Promise<UserRole> {
 
 export async function hasAdminAccess(): Promise<boolean> {
   const role = await getCurrentUserRole();
-  return role === 'administrador' || role === 'fundador';
+  return role === 'administrador';
 }
 
 export async function getUserRoleById(userId: string): Promise<UserRole> {
@@ -39,8 +39,8 @@ export async function getUserRoleById(userId: string): Promise<UserRole> {
   return (data?.role as UserRole) ?? 'no_socio';
 }
 
+// Solo administradores pueden asignar roles. Fundadores no tienen permisos de gestión.
 export function canAssignRole(assignerRole: UserRole, targetRole: UserRole): boolean {
-  if (assignerRole === 'fundador') return true;
-  if (assignerRole === 'administrador') return targetRole !== 'fundador';
+  if (assignerRole === 'administrador') return true;
   return false;
 }

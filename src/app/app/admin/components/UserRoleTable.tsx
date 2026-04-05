@@ -27,10 +27,9 @@ const ROLE_BADGE_CLASSES: Record<UserRole, string> = {
 
 const ALL_ROLES: UserRole[] = ['fundador', 'administrador', 'socio', 'no_socio'];
 
-function canAssignRole(assignerRole: UserRole, targetRole: UserRole): boolean {
-  if (assignerRole === 'fundador') return true;
-  if (assignerRole === 'administrador') return targetRole !== 'fundador';
-  return false;
+// Solo administradores pueden gestionar roles, y pueden asignar cualquiera
+function canAssignRole(assignerRole: UserRole): boolean {
+  return assignerRole === 'administrador';
 }
 
 export default function UserRoleTable({ myRole }: { myRole: UserRole }) {
@@ -84,7 +83,7 @@ export default function UserRoleTable({ myRole }: { myRole: UserRole }) {
         </thead>
         <tbody className="divide-y divide-white/5">
           {users.map((user) => (
-            <tr key={user.id} className="hover:bg-white/[0.02] transition">
+            <tr key={user.id} className="hover:bg-white/2 transition">
               <td className="px-4 py-3">
                 <span className="font-medium text-white/90">{user.email}</span>
               </td>
@@ -106,10 +105,10 @@ export default function UserRoleTable({ myRole }: { myRole: UserRole }) {
                   <select
                     value={user.role}
                     onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
-                    disabled={!canAssignRole(myRole, user.role) || pending}
+                    disabled={!canAssignRole(myRole) || pending}
                     className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/80 focus:outline-none focus:ring-1 focus:ring-emerald-400/40 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {ALL_ROLES.filter((r) => canAssignRole(myRole, r)).map((r) => (
+                    {ALL_ROLES.map((r) => (
                       <option key={r} value={r} className="bg-zinc-900">
                         {ROLE_LABELS[r]}
                       </option>
