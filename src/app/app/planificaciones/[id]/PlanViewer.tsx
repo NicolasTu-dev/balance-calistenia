@@ -81,7 +81,8 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
     }>();
 
     for (const ex of weekExs) {
-      const blockKey = ex.block_name ?? ex.section;
+      // Use block_name if available, else fall back to a readable section label
+      const blockKey = ex.block_name ?? (ex.section === "CALISTENIA" ? "Básicos" : "Skills");
       if (!blockMap.has(blockKey)) {
         blockOrder.push(blockKey);
         blockMap.set(blockKey, { section: ex.section, categories: new Map() });

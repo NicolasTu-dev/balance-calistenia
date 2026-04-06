@@ -153,20 +153,26 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     if (!currentSection) continue;
 
     // Skip spreadsheet column placeholder rows (Columna1, Columna2, ...)
-    if (/^columna\s*\d+$/i.test(String(B ?? "").trim())) continue;
+    const isPlaceholderRow = /^columna\s*\d+$/i.test(String(A ?? "").trim()) ||
+                             /^columna\s*\d+$/i.test(String(B ?? "").trim());
+    if (isPlaceholderRow) continue;
 
     // Sub-category lines: "EEC GENERAL", "EEC ESPECIFICA", "EJERCICIOS", "2 SERIES", etc.
     // These update currentCategory but NOT currentBlock.
+    // "N SERIES" (e.g. "2 SERIES") is NOT a new category — it's a note about reps
+    // that belongs to the current category (EEC ESPECIFICA). Skip the category update.
+    const isSeriesNote = /^\d+\s+SERIES?$/i.test(String(A ?? "").trim());
+
     // NOTE: these rows often also contain an exercise in col B — do NOT skip.
     const isCategoryLine =
+      !isSeriesNote &&
       typeof A === "string" &&
       A.trim() !== "" &&
       (
         aNorm.includes("EEC") ||
         aNorm === "EJERCICIOS" ||
         aNorm === "EJERCICIOS2" ||
-        aNorm.includes("TRABAJO") ||
-        /^\d+\s+SERIES?$/i.test(A.trim())
+        aNorm.includes("TRABAJO")
       );
 
     if (isCategoryLine) {
@@ -176,8 +182,14 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
 
     const order_index = typeof A === "number" ? Math.trunc(A) : null;
 
-    // Skip empty rows
+    // Skip rows with no exercise content at all
     if (!B && !E) continue;
+
+    // Skip rows where the exercise name exists but ALL sets columns are empty
+    // (placeholder exercises with no data assigned yet)
+    const hasSets = [C, D, E, F, G].some((v) => v != null && String(v).trim() !== "");
+    const hasName = B != null && String(B).trim() !== "";
+    if (hasName && !hasSets) continue;
 
     const section = currentSection;
 
