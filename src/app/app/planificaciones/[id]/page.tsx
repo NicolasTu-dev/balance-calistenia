@@ -9,7 +9,7 @@ import PlanViewer from "./PlanViewer";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] as const;
+const DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"] as const;
 
 type DbPlan = {
   id: number;
@@ -168,39 +168,49 @@ export default async function PlanByIdPage(props: PageProps) {
           Cronología semanal
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-[900px] w-full text-sm">
-            <thead className="bg-black/10">
-              <tr className="border-b border-white/10">
-                <th className="p-4 text-left text-white/70 font-medium">Semana</th>
-                {DAYS.map((d) => (
-                  <th key={d} className="p-4 text-left text-white/70 font-medium">
-                    {d}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+        {(() => {
+          // Detect how many days exist in this plan
+          const dayNums = new Set<number>();
+          (blocks ?? []).forEach((b) => dayNums.add(b.day));
+          const planDays = DAYS.filter((d, i) => dayNums.has(i + 1));
+          const numDays = Math.max(planDays.length, 5); // at least 5 cols
 
-            <tbody>
-              {(weeks ?? []).map((w) => (
-                <tr key={w.id} className="border-b border-white/10">
-                  <td className="p-4 font-semibold">{w.name}</td>
-                  {Array.from({ length: 5 }).map((_, idx) => {
-                    const day = idx + 1;
-                    const val = blocksMap.get(`${w.week_number}:${day}`) ?? null;
-                    return (
-                      <td key={day} className="p-4">
-                        <span className="inline-flex items-center rounded-xl border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold">
-                          {val ?? "—"}
-                        </span>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          return (
+            <div className="overflow-x-auto">
+              <table className="min-w-225 w-full text-sm">
+                <thead className="bg-black/10">
+                  <tr className="border-b border-white/10">
+                    <th className="p-4 text-left text-white/70 font-medium">Semana</th>
+                    {DAYS.slice(0, numDays).map((d) => (
+                      <th key={d} className="p-4 text-left text-white/70 font-medium">
+                        {d}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {(weeks ?? []).map((w) => (
+                    <tr key={w.id} className="border-b border-white/10">
+                      <td className="p-4 font-semibold">{w.name}</td>
+                      {Array.from({ length: numDays }).map((_, idx) => {
+                        const day = idx + 1;
+                        const val = blocksMap.get(`${w.week_number}:${day}`) ?? null;
+                        return (
+                          <td key={day} className="p-4">
+                            <span className="inline-flex items-center rounded-xl border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold">
+                              {val ?? "—"}
+                            </span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
       </section>
 
       {/* Vista premium por día + tabs */}

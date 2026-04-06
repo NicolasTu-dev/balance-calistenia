@@ -9,6 +9,7 @@ const DAYS = [
   { day: 3, label: "Mié" },
   { day: 4, label: "Jue" },
   { day: 5, label: "Vie" },
+  { day: 6, label: "Sáb" },
 ] as const;
 
 type DbWeek = { id: number; week_number: number; name: string };
@@ -73,6 +74,12 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
     weeks.forEach((w) => m.set(w.week_number, w.id));
     return m;
   }, [weeks]);
+
+  // Only show days that actually exist in the plan's blocks
+  const activeDays = useMemo(() => {
+    const daySet = new Set(blocks.map((b) => b.day));
+    return DAYS.filter((d) => daySet.has(d.day));
+  }, [blocks]);
 
   const blocksMap = useMemo(() => {
     // key: `${week_number}:${day}` => block_type
@@ -183,7 +190,7 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
           <div className="w-full sm:w-auto">
             <div className="text-xs text-white/60 mb-2">Día</div>
             <div className="inline-flex rounded-2xl border border-white/10 bg-black/20 p-1">
-              {DAYS.map((d) => (
+              {activeDays.map((d) => (
                 <button
                   key={d.day}
                   type="button"

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Check, Copy, Pencil, X } from "lucide-react";
 
 type Plan = {
   id: number;
   title: string;
+  admin_note: string | null;
   created_at: string;
   active: boolean;
   owner_user_id: string;
@@ -27,6 +29,90 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
       <span className="font-bold text-white">{text.slice(idx, idx + query.length)}</span>
       {text.slice(idx + query.length)}
     </span>
+  );
+}
+
+function CopyButton({ planId }: { planId: number }) {
+  const [copied, setCopied] = useState(false);
+  function handleCopy() {
+    const url = `${window.location.origin}/app/planificaciones/${planId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+  return (
+    <button
+      onClick={handleCopy}
+      title="Copiar enlace del plan"
+      className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs hover:bg-white/10 transition flex items-center gap-1.5"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? "Copiado" : "Enlace"}
+    </button>
+  );
+}
+
+function InlineEdit({
+  value,
+  placeholder,
+  onSave,
+  multiline = false,
+}: {
+  value: string;
+  placeholder: string;
+  onSave: (v: string) => Promise<void>;
+  multiline?: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (draft === value) { setEditing(false); return; }
+    setSaving(true);
+    await onSave(draft);
+    setSaving(false);
+    setEditing(false);
+  }
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => { setDraft(value); setEditing(true); }}
+        className="group flex items-center gap-1.5 text-left hover:text-white transition"
+      >
+        <span className={value ? "" : "text-white/30 italic"}>{value || placeholder}</span>
+        <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition shrink-0" />
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-2">
+      {multiline ? (
+        <textarea
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={2}
+          className="flex-1 rounded-lg border border-white/20 bg-white/5 px-2 py-1 text-sm text-white focus:outline-none focus:border-emerald-400/50 resize-none"
+        />
+      ) : (
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
+          className="flex-1 rounded-lg border border-white/20 bg-white/5 px-2 py-1 text-sm text-white focus:outline-none focus:border-emerald-400/50"
+        />
+      )}
+      <button onClick={save} disabled={saving} className="text-emerald-400 hover:text-emerald-300 transition mt-1">
+        <Check className="h-4 w-4" />
+      </button>
+      <button onClick={() => setEditing(false)} className="text-white/40 hover:text-white transition mt-1">
+        <X className="h-4 w-4" />
+      </button>
+    </div>
   );
 }
 
@@ -53,7 +139,6 @@ export default function PlanificacionesManager() {
     if (!res.ok) { setLoading(false); return; }
     const plans: Plan[] = await res.json();
 
-    // Group by user
     const map = new Map<string, UserGroup>();
     for (const p of plans) {
       const key = p.owner_user_id;
@@ -79,7 +164,6 @@ export default function PlanificacionesManager() {
     fetchUsers();
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -96,14 +180,32 @@ export default function PlanificacionesManager() {
     if (res.ok || res.status === 204) fetchPlans();
   }
 
+  async function handlePatch(planId: number, body: Record<string, unknown>) {
+    const res = await fetch(`/api/admin/plans/${planId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return;
+    const updated = await res.json();
+    setGroups((prev) =>
+      prev.map((g) => ({
+        ...g,
+        plans: g.plans.map((p) => {
+          if (p.id === planId) return { ...p, ...updated };
+          // If toggling active, deactivate others in same group
+          if (body.active === true && p.owner_user_id === g.user_id) return { ...p, active: false };
+          return p;
+        }),
+      }))
+    );
+  }
+
   async function handleUpload() {
     if (!importingFor) return;
     const file = fileRef.current?.files?.[0];
     if (!file) { setUploadError("Seleccioná un archivo .xlsx"); return; }
-    if (!file.name.toLowerCase().endsWith(".xlsx")) {
-      setUploadError("Solo se permite .xlsx");
-      return;
-    }
+    if (!file.name.toLowerCase().endsWith(".xlsx")) { setUploadError("Solo se permite .xlsx"); return; }
 
     setUploading(true);
     setUploadError(null);
@@ -115,7 +217,6 @@ export default function PlanificacionesManager() {
 
     const res = await fetch("/api/plans/import", { method: "POST", body: fd });
     const data = await res.json();
-
     setUploading(false);
 
     if (!res.ok || !data.ok) {
@@ -136,7 +237,7 @@ export default function PlanificacionesManager() {
     ? allUsers.filter((u) => u.email.toLowerCase().includes(search.toLowerCase()))
     : allUsers;
 
-  // ── Import panel ────────────────────────────────────────────────────────────
+  // ── Import panel ─────────────────────────────────────────────────────────────
   if (importingFor) {
     return (
       <div className="space-y-5">
@@ -155,9 +256,8 @@ export default function PlanificacionesManager() {
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
           <p className="text-sm text-white/60">
-            Subí el archivo <b>.xlsx</b> exportado desde Google Sheets. Se creará el plan en la cuenta del usuario seleccionado.
+            Subí el archivo <b>.xlsx</b>. El plan nuevo quedará como <b>activo</b> y los anteriores pasarán a inactivos.
           </p>
-
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               ref={fileRef}
@@ -173,7 +273,6 @@ export default function PlanificacionesManager() {
               {uploading ? "Importando…" : "Importar"}
             </button>
           </div>
-
           {uploadError && (
             <div className="rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-2.5 text-sm text-red-300">
               {uploadError}
@@ -189,16 +288,15 @@ export default function PlanificacionesManager() {
     );
   }
 
-  // ── Main list ───────────────────────────────────────────────────────────────
+  // ── Main list ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Header + user picker */}
+      {/* Header + user search */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <p className="text-sm text-white/50">
           {groups.length} usuario{groups.length !== 1 ? "s" : ""} con planificaciones
         </p>
 
-        {/* Quick user picker to import for someone */}
         <div className="flex gap-2 w-full sm:w-auto" ref={searchRef}>
           <div className="relative flex-1 sm:w-72">
             <input
@@ -208,7 +306,6 @@ export default function PlanificacionesManager() {
               placeholder="Buscar usuario para importar plan…"
               className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-400/50 transition"
             />
-
             {dropdownOpen && (
               <div className="absolute left-0 right-0 top-full mt-1 z-20 rounded-xl border border-white/10 bg-zinc-900 shadow-2xl overflow-hidden">
                 {filteredUsers.length === 0 ? (
@@ -222,7 +319,7 @@ export default function PlanificacionesManager() {
                     )}
                     <div className="max-h-60 overflow-y-auto">
                       {filteredUsers.slice(0, 10).map((u) => {
-                        const hasPlans = groups.some((g) => g.user_id === u.id);
+                        const userPlans = groups.find((g) => g.user_id === u.id)?.plans ?? [];
                         return (
                           <button
                             key={u.id}
@@ -240,9 +337,9 @@ export default function PlanificacionesManager() {
                               <HighlightMatch text={u.email} query={search} />
                             </span>
                             <span className="ml-auto shrink-0 flex items-center gap-2">
-                              {hasPlans && (
+                              {userPlans.length > 0 && (
                                 <span className="text-xs text-white/30">
-                                  {groups.find((g) => g.user_id === u.id)?.plans.length} plan{groups.find((g) => g.user_id === u.id)?.plans.length !== 1 ? "es" : ""}
+                                  {userPlans.length} plan{userPlans.length !== 1 ? "es" : ""}
                                 </span>
                               )}
                               <span className="text-xs text-emerald-400">Importar →</span>
@@ -279,7 +376,14 @@ export default function PlanificacionesManager() {
               <div className="flex items-center justify-between gap-3 px-5 py-3 bg-white/5 border-b border-white/10">
                 <div>
                   <p className="text-sm font-medium text-white truncate">{group.email}</p>
-                  <p className="text-xs text-white/40 mt-0.5">{group.plans.length} planificación{group.plans.length !== 1 ? "es" : ""}</p>
+                  <p className="text-xs text-white/40 mt-0.5">
+                    {group.plans.length} planificación{group.plans.length !== 1 ? "es" : ""}
+                    {" · "}
+                    {group.plans.filter((p) => p.active).length > 0
+                      ? <span className="text-emerald-400">{group.plans.filter((p) => p.active).length} activa</span>
+                      : <span className="text-white/30">ninguna activa</span>
+                    }
+                  </p>
                 </div>
                 <button
                   onClick={() => {
@@ -296,32 +400,78 @@ export default function PlanificacionesManager() {
               {/* Plans list */}
               <div className="divide-y divide-white/5">
                 {group.plans.map((plan) => (
-                  <div key={plan.id} className="flex items-center gap-4 px-5 py-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{plan.title}</p>
-                      <p className="text-xs text-white/40 mt-0.5">
-                        Importado: {new Date(plan.created_at).toLocaleDateString("es-AR")}
-                        {" · "}
-                        <span className={plan.active ? "text-emerald-400" : "text-white/30"}>
-                          {plan.active ? "Activo" : "Inactivo"}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <a
-                        href={`/app/planificaciones/${plan.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10 transition"
-                      >
-                        Ver
-                      </a>
-                      <button
-                        onClick={() => handleDelete(plan.id, plan.title)}
-                        className="rounded-lg border border-red-400/20 text-red-400/70 px-3 py-1.5 text-xs hover:bg-red-400/10 hover:text-red-400 transition"
-                      >
-                        Eliminar
-                      </button>
+                  <div
+                    key={plan.id}
+                    className={`px-5 py-4 space-y-3 ${plan.active ? "bg-emerald-400/5" : ""}`}
+                  >
+                    {/* Title row */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        {/* Active badge + title */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {plan.active && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-300 shrink-0">
+                              ● Activo
+                            </span>
+                          )}
+                          <div className="text-sm font-medium text-white min-w-0">
+                            <InlineEdit
+                              value={plan.title}
+                              placeholder="Sin título"
+                              onSave={(v) => handlePatch(plan.id, { title: v })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Note */}
+                        <div className="text-xs text-white/50">
+                          <InlineEdit
+                            value={plan.admin_note ?? ""}
+                            placeholder="+ Agregar nota para el usuario…"
+                            multiline
+                            onSave={(v) => handlePatch(plan.id, { admin_note: v || null })}
+                          />
+                        </div>
+
+                        <p className="text-xs text-white/30">
+                          Importado: {new Date(plan.created_at).toLocaleDateString("es-AR")}
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                        <CopyButton planId={plan.id} />
+                        <a
+                          href={`/app/planificaciones/${plan.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10 transition"
+                        >
+                          Ver
+                        </a>
+                        {!plan.active && (
+                          <button
+                            onClick={() => handlePatch(plan.id, { active: true })}
+                            className="rounded-lg border border-emerald-400/20 text-emerald-400/70 px-3 py-1.5 text-xs hover:bg-emerald-400/10 hover:text-emerald-400 transition"
+                          >
+                            Activar
+                          </button>
+                        )}
+                        {plan.active && (
+                          <button
+                            onClick={() => handlePatch(plan.id, { active: false })}
+                            className="rounded-lg border border-white/10 text-white/40 px-3 py-1.5 text-xs hover:bg-white/10 transition"
+                          >
+                            Desactivar
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(plan.id, plan.title)}
+                          className="rounded-lg border border-red-400/20 text-red-400/70 px-3 py-1.5 text-xs hover:bg-red-400/10 hover:text-red-400 transition"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

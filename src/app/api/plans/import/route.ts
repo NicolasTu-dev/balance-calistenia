@@ -52,6 +52,16 @@ function parseCronologia(sheet: XLSX.WorkSheet) {
   const weekCol = start.c;
   const dayColStart = start.c + 1;
 
+  // Detect number of days dynamically from the header row
+  const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1:A1");
+  let numDays = 0;
+  for (let c = dayColStart; c <= range.e.c; c++) {
+    const v = readCell(sheet, start.r, c);
+    if (v == null || String(v).trim() === "") break;
+    numDays++;
+  }
+  if (numDays === 0) numDays = 5;
+
   const blocks: Array<{ week: number; day: number; block_type: string | null }> =
     [];
 
@@ -62,7 +72,7 @@ function parseCronologia(sheet: XLSX.WorkSheet) {
 
     const weekNum = i + 1;
 
-    for (let d = 0; d < 5; d++) {
+    for (let d = 0; d < numDays; d++) {
       const val = readCell(sheet, row, dayColStart + d);
       const block_type =
         val == null || String(val).trim() === "" ? null : String(val).trim();
@@ -130,25 +140,31 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     if (aNorm === "CALISTENIA") { currentSection = "CALISTENIA"; currentCategory = null; continue; }
     if (aNorm === "SKILLS")     { currentSection = "SKILLS";     currentCategory = null; continue; }
 
-    // Skill section header: A=skill name, B="EJERCICIOS", C starts with "SEMANA"
+    // Section header: A=section name, B="EJERCICIOS" or "EJERCICIOS2", C starts with "SEMANA"
+    // Covers: MUSCLE UP, FRONT LEVER, BÁSICOS, HANDSTAND, etc.
     if (
       typeof A === "string" && A.trim() !== "" &&
-      bNorm === "EJERCICIOS" &&
+      (bNorm === "EJERCICIOS" || bNorm === "EJERCICIOS2") &&
       cNorm.startsWith("SEMANA")
     ) {
-      currentSection = "SKILLS";
+      // BÁSICOS → map to CALISTENIA section, everything else → SKILLS
+      const aUp = A.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      currentSection = aUp.includes("BASICO") ? "CALISTENIA" : "SKILLS";
       currentCategory = A.trim();
       continue;
     }
 
     if (!currentSection) continue;
 
+    // Skip spreadsheet column placeholder rows (Columna1, Columna2, ...)
+    if (/^columna\s*\d+$/i.test(String(B ?? "").trim())) continue;
+
     // Category lines: "EEC GENERAL", "EEC ESPECIFICA", "EJERCICIOS", etc.
     // NOTE: these rows often also contain an exercise in col B — do NOT skip.
     const isCategoryLine =
       typeof A === "string" &&
       A.trim() !== "" &&
-      (aNorm.includes("EEC") || aNorm === "EJERCICIOS" || aNorm.includes("TRABAJO"));
+      (aNorm.includes("EEC") || aNorm === "EJERCICIOS" || aNorm === "EJERCICIOS2" || aNorm.includes("TRABAJO"));
 
     if (isCategoryLine) {
       currentCategory = A.trim();
@@ -221,6 +237,12 @@ export async function POST(req: Request) {
 
   const rawTitle = file.name.replace(/\.xlsx$/i, "").trim();
   const slug = `${slugify(rawTitle)}-${Date.now()}`;
+
+  // Deactivate previous plans for this user before creating the new active one
+  await supabaseAdmin()
+    .from("plans")
+    .update({ active: false })
+    .eq("owner_user_id", targetUserId);
 
   // 1) Crear plan
   const { data: plan, error: planErr } = await db
