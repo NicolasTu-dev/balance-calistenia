@@ -220,7 +220,7 @@ export async function POST(req: Request) {
   const exercises = parseExerciseTables(sheet);
 
   const rawTitle = file.name.replace(/\.xlsx$/i, "").trim();
-  const slug = slugify(rawTitle);
+  const slug = `${slugify(rawTitle)}-${Date.now()}`;
 
   // 1) Crear plan
   const { data: plan, error: planErr } = await db
