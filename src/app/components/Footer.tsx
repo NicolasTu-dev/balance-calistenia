@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-const WHATSAPP_NUMBER = "5491159288809";
+const WHATSAPP_NUMBER = "5491157541046";
 const INSTAGRAM_URL = "https://www.instagram.com/balance_calistenia/";
 
 const links = [

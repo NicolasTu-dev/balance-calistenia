@@ -17,7 +17,7 @@ export type Product = {
   extraImages?: string[]; // front/back toggle
 };
 
-const WHATSAPP_NUMBER = "5491159288809";
+const WHATSAPP_NUMBER = "5491157541046";
 
 function buildWhatsappUrl(product: Product, size: string, color: string) {
   const text = encodeURIComponent(
