@@ -90,10 +90,12 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
   // We detect section starts by the header row pattern:
   //   col A = skill name, col B = "EJERCICIOS", col C starts with "SEMANA"
   let currentSection: "CALISTENIA" | "SKILLS" | null = null;
-  let currentCategory: string | null = null;
+  let currentBlock: string | null = null;    // top-level block: MUSCLE UP, SKILLS, BÁSICOS
+  let currentCategory: string | null = null; // sub-category: EEC GENERAL, EJERCICIOS, etc.
 
   const items: Array<{
     section: "CALISTENIA" | "SKILLS";
+    block_name: string | null;
     category: string | null;
     week_number: number;
     order_index: number | null;
@@ -103,6 +105,7 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
 
   const pushWeek = (
     section: "CALISTENIA" | "SKILLS",
+    block_name: string | null,
     category: string | null,
     week: number,
     order_index: number | null,
@@ -113,14 +116,7 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     const sets = setsVal == null ? null : String(setsVal).trim();
     if (!name) return;
 
-    items.push({
-      section,
-      category,
-      week_number: week,
-      order_index,
-      name,
-      sets,
-    });
+    items.push({ section, block_name, category, week_number: week, order_index, name, sets });
   };
 
   for (let r = range.s.r; r <= range.e.r; r++) {
@@ -137,20 +133,20 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     const cNorm = norm(C);
 
     // Legacy: explicit CALISTENIA / SKILLS markers
-    if (aNorm === "CALISTENIA") { currentSection = "CALISTENIA"; currentCategory = null; continue; }
-    if (aNorm === "SKILLS")     { currentSection = "SKILLS";     currentCategory = null; continue; }
+    if (aNorm === "CALISTENIA") { currentSection = "CALISTENIA"; currentBlock = "CALISTENIA"; currentCategory = null; continue; }
+    if (aNorm === "SKILLS")     { currentSection = "SKILLS";     currentBlock = "SKILLS";     currentCategory = null; continue; }
 
-    // Section header: A=section name, B="EJERCICIOS" or "EJERCICIOS2", C starts with "SEMANA"
-    // Covers: MUSCLE UP, FRONT LEVER, BÁSICOS, HANDSTAND, etc.
+    // Top-level block header: A=block name, B="EJERCICIOS"/"EJERCICIOS2", C starts with "SEMANA"
+    // e.g. "MUSCLE UP", "BÁSICOS", "FRONT LEVER", "HANDSTAND"
     if (
       typeof A === "string" && A.trim() !== "" &&
       (bNorm === "EJERCICIOS" || bNorm === "EJERCICIOS2") &&
       cNorm.startsWith("SEMANA")
     ) {
-      // BÁSICOS → map to CALISTENIA section, everything else → SKILLS
       const aUp = A.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       currentSection = aUp.includes("BASICO") ? "CALISTENIA" : "SKILLS";
-      currentCategory = A.trim();
+      currentBlock = A.trim();
+      currentCategory = null;
       continue;
     }
 
@@ -159,7 +155,8 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     // Skip spreadsheet column placeholder rows (Columna1, Columna2, ...)
     if (/^columna\s*\d+$/i.test(String(B ?? "").trim())) continue;
 
-    // Category lines: "EEC GENERAL", "EEC ESPECIFICA", "EJERCICIOS", "2 SERIES", etc.
+    // Sub-category lines: "EEC GENERAL", "EEC ESPECIFICA", "EJERCICIOS", "2 SERIES", etc.
+    // These update currentCategory but NOT currentBlock.
     // NOTE: these rows often also contain an exercise in col B — do NOT skip.
     const isCategoryLine =
       typeof A === "string" &&
@@ -169,7 +166,7 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
         aNorm === "EJERCICIOS" ||
         aNorm === "EJERCICIOS2" ||
         aNorm.includes("TRABAJO") ||
-        /^\d+\s+SERIES?$/i.test(A.trim())   // e.g. "2 SERIES", "3 SERIES"
+        /^\d+\s+SERIES?$/i.test(A.trim())
       );
 
     if (isCategoryLine) {
@@ -185,14 +182,14 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     const section = currentSection;
 
     // Semana 1 y 2: name=B, sets=C y D
-    pushWeek(section, currentCategory, 1, order_index, B, C);
-    pushWeek(section, currentCategory, 2, order_index, B, D);
+    pushWeek(section, currentBlock, currentCategory, 1, order_index, B, C);
+    pushWeek(section, currentBlock, currentCategory, 2, order_index, B, D);
 
     // Semana 3 y 4: name=E (puede diferir), sets=F/G
     const name34 = E ?? B;
     if (name34) {
-      pushWeek(section, currentCategory, 3, order_index, name34, F);
-      pushWeek(section, currentCategory, 4, order_index, name34, G);
+      pushWeek(section, currentBlock, currentCategory, 3, order_index, name34, F);
+      pushWeek(section, currentBlock, currentCategory, 4, order_index, name34, G);
     }
   }
 
@@ -314,6 +311,7 @@ export async function POST(req: Request) {
     plan_id: planId,
     week_number: e.week_number,
     section: e.section,
+    block_name: e.block_name,
     category: e.category,
     order_index: e.order_index,
     name: e.name,

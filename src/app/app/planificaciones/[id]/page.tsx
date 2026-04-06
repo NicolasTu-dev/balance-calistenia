@@ -24,6 +24,7 @@ type DbExercise = {
   id: number;
   week_number: number;
   section: "CALISTENIA" | "SKILLS";
+  block_name: string | null;
   category: string | null;
   order_index: number | null;
   name: string;
@@ -47,7 +48,7 @@ export default async function PlanByIdPage(props: PageProps) {
         <Link
           href="/tienda"
           className="mt-4 inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold text-black
-                     bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
+                     bg-linear-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition"
         >
           Activar membresía
         </Link>
@@ -127,7 +128,7 @@ export default async function PlanByIdPage(props: PageProps) {
 
   const { data: exercises } = await db
     .from("plan_exercises")
-    .select("id, week_number, section, category, order_index, name, sets, notes")
+    .select("id, week_number, section, block_name, category, order_index, name, sets, notes")
     .eq("plan_id", planId)
     .order("week_number", { ascending: true })
     .order("section", { ascending: true })
