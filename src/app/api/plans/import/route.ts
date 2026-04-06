@@ -159,12 +159,18 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     // Skip spreadsheet column placeholder rows (Columna1, Columna2, ...)
     if (/^columna\s*\d+$/i.test(String(B ?? "").trim())) continue;
 
-    // Category lines: "EEC GENERAL", "EEC ESPECIFICA", "EJERCICIOS", etc.
+    // Category lines: "EEC GENERAL", "EEC ESPECIFICA", "EJERCICIOS", "2 SERIES", etc.
     // NOTE: these rows often also contain an exercise in col B — do NOT skip.
     const isCategoryLine =
       typeof A === "string" &&
       A.trim() !== "" &&
-      (aNorm.includes("EEC") || aNorm === "EJERCICIOS" || aNorm === "EJERCICIOS2" || aNorm.includes("TRABAJO"));
+      (
+        aNorm.includes("EEC") ||
+        aNorm === "EJERCICIOS" ||
+        aNorm === "EJERCICIOS2" ||
+        aNorm.includes("TRABAJO") ||
+        /^\d+\s+SERIES?$/i.test(A.trim())   // e.g. "2 SERIES", "3 SERIES"
+      );
 
     if (isCategoryLine) {
       currentCategory = A.trim();

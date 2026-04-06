@@ -169,21 +169,23 @@ export default async function PlanByIdPage(props: PageProps) {
         </div>
 
         {(() => {
-          // Detect how many days exist in this plan
-          const dayNums = new Set<number>();
-          (blocks ?? []).forEach((b) => dayNums.add(b.day));
-          const planDays = DAYS.filter((d, i) => dayNums.has(i + 1));
-          const numDays = Math.max(planDays.length, 5); // at least 5 cols
+          // Only show training days (non-null block_type)
+          const trainingDayNums = new Set<number>();
+          (blocks ?? []).forEach((b) => {
+            if (b.block_type && b.block_type.trim() !== "") trainingDayNums.add(b.day);
+          });
+          const trainingDays = Array.from(trainingDayNums).sort((a, b) => a - b);
+          const dayLabels = trainingDays.map((d) => DAYS[d - 1] ?? `Día ${d}`);
 
           return (
             <div className="overflow-x-auto">
-              <table className="min-w-225 w-full text-sm">
+              <table className="w-full text-sm">
                 <thead className="bg-black/10">
                   <tr className="border-b border-white/10">
                     <th className="p-4 text-left text-white/70 font-medium">Semana</th>
-                    {DAYS.slice(0, numDays).map((d) => (
-                      <th key={d} className="p-4 text-left text-white/70 font-medium">
-                        {d}
+                    {dayLabels.map((label) => (
+                      <th key={label} className="p-4 text-left text-white/70 font-medium">
+                        {label}
                       </th>
                     ))}
                   </tr>
@@ -193,12 +195,11 @@ export default async function PlanByIdPage(props: PageProps) {
                   {(weeks ?? []).map((w) => (
                     <tr key={w.id} className="border-b border-white/10">
                       <td className="p-4 font-semibold">{w.name}</td>
-                      {Array.from({ length: numDays }).map((_, idx) => {
-                        const day = idx + 1;
+                      {trainingDays.map((day) => {
                         const val = blocksMap.get(`${w.week_number}:${day}`) ?? null;
                         return (
                           <td key={day} className="p-4">
-                            <span className="inline-flex items-center rounded-xl border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold">
+                            <span className="inline-flex items-center rounded-xl border border-emerald-400/20 bg-emerald-400/8 px-3 py-1.5 text-xs font-semibold text-emerald-200">
                               {val ?? "—"}
                             </span>
                           </td>
