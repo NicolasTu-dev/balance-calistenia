@@ -17,6 +17,19 @@ type UserGroup = {
   plans: Plan[];
 };
 
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <span>{text}</span>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <span>{text}</span>;
+  return (
+    <span>
+      {text.slice(0, idx)}
+      <span className="font-bold text-white">{text.slice(idx, idx + query.length)}</span>
+      {text.slice(idx + query.length)}
+    </span>
+  );
+}
+
 export default function PlanificacionesManager() {
   const [groups, setGroups] = useState<UserGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +44,8 @@ export default function PlanificacionesManager() {
   // User search
   const [allUsers, setAllUsers] = useState<{ id: string; email: string }[]>([]);
   const [search, setSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement | null>(null);
 
   async function fetchPlans() {
     setLoading(true);
@@ -61,6 +76,17 @@ export default function PlanificacionesManager() {
   useEffect(() => {
     fetchPlans();
     fetchUsers();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   async function handleDelete(planId: number, title: string) {
@@ -105,14 +131,9 @@ export default function PlanificacionesManager() {
     }, 1500);
   }
 
-  // Users without plans (for the import picker)
-  const usersWithoutPlans = allUsers.filter(
-    (u) => !groups.some((g) => g.user_id === u.id)
-  );
-
-  const filteredUsers = allUsers.filter((u) =>
-    u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = search.trim()
+    ? allUsers.filter((u) => u.email.toLowerCase().includes(search.toLowerCase()))
+    : allUsers;
 
   // ── Import panel ────────────────────────────────────────────────────────────
   if (importingFor) {
@@ -177,31 +198,65 @@ export default function PlanificacionesManager() {
         </p>
 
         {/* Quick user picker to import for someone */}
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex gap-2 w-full sm:w-auto" ref={searchRef}>
+          <div className="relative flex-1 sm:w-72">
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar usuario por email…"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
+              onChange={(e) => { setSearch(e.target.value); setDropdownOpen(true); }}
+              onFocus={() => setDropdownOpen(true)}
+              placeholder="Buscar usuario para importar plan…"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-400/50 transition"
             />
-            {search && filteredUsers.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 z-20 rounded-xl border border-white/10 bg-zinc-900 shadow-xl overflow-hidden">
-                {filteredUsers.slice(0, 6).map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => {
-                      setImportingFor(u);
-                      setSearch("");
-                      setUploadError(null);
-                      setUploadOk(false);
-                    }}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-left hover:bg-white/10 transition"
-                  >
-                    <span className="truncate text-white/80">{u.email}</span>
-                    <span className="ml-auto shrink-0 text-xs text-emerald-400">Importar →</span>
-                  </button>
-                ))}
+
+            {dropdownOpen && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-20 rounded-xl border border-white/10 bg-zinc-900 shadow-2xl overflow-hidden">
+                {filteredUsers.length === 0 ? (
+                  <p className="px-3 py-3 text-sm text-white/40">Sin resultados</p>
+                ) : (
+                  <>
+                    {!search.trim() && (
+                      <p className="px-3 pt-2.5 pb-1 text-xs text-white/30 uppercase tracking-wider">
+                        Todos los usuarios ({allUsers.length})
+                      </p>
+                    )}
+                    <div className="max-h-60 overflow-y-auto">
+                      {filteredUsers.slice(0, 10).map((u) => {
+                        const hasPlans = groups.some((g) => g.user_id === u.id);
+                        return (
+                          <button
+                            key={u.id}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setImportingFor(u);
+                              setSearch("");
+                              setDropdownOpen(false);
+                              setUploadError(null);
+                              setUploadOk(false);
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-left hover:bg-white/10 transition"
+                          >
+                            <span className="truncate text-white/70">
+                              <HighlightMatch text={u.email} query={search} />
+                            </span>
+                            <span className="ml-auto shrink-0 flex items-center gap-2">
+                              {hasPlans && (
+                                <span className="text-xs text-white/30">
+                                  {groups.find((g) => g.user_id === u.id)?.plans.length} plan{groups.find((g) => g.user_id === u.id)?.plans.length !== 1 ? "es" : ""}
+                                </span>
+                              )}
+                              <span className="text-xs text-emerald-400">Importar →</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                      {filteredUsers.length > 10 && (
+                        <p className="px-3 py-2 text-xs text-white/30 text-center border-t border-white/5">
+                          +{filteredUsers.length - 10} más — escribí para filtrar
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
