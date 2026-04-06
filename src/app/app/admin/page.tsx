@@ -2,6 +2,7 @@ import { getCurrentUserRole } from "@/app/lib/supabase/roles";
 import UserRoleTable from "./components/UserRoleTable";
 import MembershipTable from "./components/MembershipTable";
 import ShopManager from "./components/ShopManager";
+import PlanificacionesManager from "./components/PlanificacionesManager";
 import Link from "next/link";
 
 export default async function AdminPage({
@@ -10,7 +11,7 @@ export default async function AdminPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { tab } = await searchParams;
-  const activeTab = tab === "membresias" ? "membresias" : tab === "tienda" ? "tienda" : "roles";
+  const activeTab = tab === "membresias" ? "membresias" : tab === "tienda" ? "tienda" : tab === "planificaciones" ? "planificaciones" : "roles";
   const myRole = await getCurrentUserRole();
 
   return (
@@ -54,14 +55,26 @@ export default async function AdminPage({
         >
           Tienda
         </Link>
+        <Link
+          href="/app/admin?tab=planificaciones"
+          className={`px-4 py-2 text-sm font-medium rounded-t-xl border-b-2 transition ${
+            activeTab === "planificaciones"
+              ? "border-emerald-400 text-emerald-300"
+              : "border-transparent text-white/50 hover:text-white/80"
+          }`}
+        >
+          Planificaciones
+        </Link>
       </div>
 
       {activeTab === "roles" ? (
         <UserRoleTable myRole={myRole} />
       ) : activeTab === "membresias" ? (
         <MembershipTable />
-      ) : (
+      ) : activeTab === "tienda" ? (
         <ShopManager />
+      ) : (
+        <PlanificacionesManager />
       )}
     </div>
   );

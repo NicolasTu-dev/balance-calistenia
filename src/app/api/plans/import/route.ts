@@ -46,19 +46,23 @@ function parseCronologia(sheet: XLSX.WorkSheet) {
   if (!start) return [];
 
   const weekRowStart = start.r + 1;
+  // "CRONOLOGIA SEMANAL" can be in any column — week labels are in the same
+  // column, days start one column to the right.
+  const weekCol = start.c;
+  const dayColStart = start.c + 1;
 
   const blocks: Array<{ week: number; day: number; block_type: string | null }> =
     [];
 
   for (let i = 0; i < 4; i++) {
     const row = weekRowStart + i;
-    const weekLabel = readCell(sheet, row, 2); // C
+    const weekLabel = readCell(sheet, row, weekCol);
     if (!norm(weekLabel).startsWith("SEMANA")) continue;
 
     const weekNum = i + 1;
 
     for (let d = 0; d < 5; d++) {
-      const val = readCell(sheet, row, 3 + d); // D..H
+      const val = readCell(sheet, row, dayColStart + d);
       const block_type =
         val == null || String(val).trim() === "" ? null : String(val).trim();
       blocks.push({ week: weekNum, day: d + 1, block_type });
@@ -71,6 +75,9 @@ function parseCronologia(sheet: XLSX.WorkSheet) {
 function parseExerciseTables(sheet: XLSX.WorkSheet) {
   const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1:A1");
 
+  // Section is always SKILLS for skill-based planifications.
+  // We detect section starts by the header row pattern:
+  //   col A = skill name, col B = "EJERCICIOS", col C starts with "SEMANA"
   let currentSection: "CALISTENIA" | "SKILLS" | null = null;
   let currentCategory: string | null = null;
 
@@ -115,34 +122,41 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     const G = readCell(sheet, r, 6);
 
     const aNorm = norm(A);
+    const bNorm = norm(B);
+    const cNorm = norm(C);
 
-    // Secciones
-    if (aNorm === "CALISTENIA") {
-      currentSection = "CALISTENIA";
-      currentCategory = null;
-      continue;
-    }
-    if (aNorm === "SKILLS") {
+    // Legacy: explicit CALISTENIA / SKILLS markers
+    if (aNorm === "CALISTENIA") { currentSection = "CALISTENIA"; currentCategory = null; continue; }
+    if (aNorm === "SKILLS")     { currentSection = "SKILLS";     currentCategory = null; continue; }
+
+    // Skill section header: A=skill name, B="EJERCICIOS", C starts with "SEMANA"
+    if (
+      typeof A === "string" && A.trim() !== "" &&
+      bNorm === "EJERCICIOS" &&
+      cNorm.startsWith("SEMANA")
+    ) {
       currentSection = "SKILLS";
-      currentCategory = null;
+      currentCategory = A.trim();
       continue;
     }
+
     if (!currentSection) continue;
 
-    // Categorías (líneas tipo "EEC GENERAL", "EJERCICIOS", etc.)
+    // Category lines: "EEC GENERAL", "EEC ESPECIFICA", "EJERCICIOS", etc.
+    // NOTE: these rows often also contain an exercise in col B — do NOT skip.
     const isCategoryLine =
       typeof A === "string" &&
       A.trim() !== "" &&
       (aNorm.includes("EEC") || aNorm === "EJERCICIOS" || aNorm.includes("TRABAJO"));
 
     if (isCategoryLine) {
-      currentCategory = String(A).trim();
-      continue;
+      currentCategory = A.trim();
+      // fall through — same row may have an exercise in col B
     }
 
     const order_index = typeof A === "number" ? Math.trunc(A) : null;
 
-    // Filas vacías
+    // Skip empty rows
     if (!B && !E) continue;
 
     const section = currentSection;
@@ -151,7 +165,7 @@ function parseExerciseTables(sheet: XLSX.WorkSheet) {
     pushWeek(section, currentCategory, 1, order_index, B, C);
     pushWeek(section, currentCategory, 2, order_index, B, D);
 
-    // Semana 3 y 4: en tu sheet suele ser name=E (o B), sets=F/G
+    // Semana 3 y 4: name=E (puede diferir), sets=F/G
     const name34 = E ?? B;
     if (name34) {
       pushWeek(section, currentCategory, 3, order_index, name34, F);
@@ -173,12 +187,23 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const file = form.get("file");
+  const targetUserIdRaw = form.get("target_user_id");
 
   if (!(file instanceof File)) {
     return NextResponse.json({ ok: false, error: "no_file" }, { status: 400 });
   }
   if (!file.name.toLowerCase().endsWith(".xlsx")) {
     return NextResponse.json({ ok: false, error: "only_xlsx" }, { status: 400 });
+  }
+
+  // Admins can import for another user via target_user_id
+  let targetUserId = user.id;
+  if (targetUserIdRaw && typeof targetUserIdRaw === "string" && targetUserIdRaw !== user.id) {
+    const { hasAdminAccess } = await import("@/app/lib/supabase/roles");
+    if (!(await hasAdminAccess())) {
+      return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+    }
+    targetUserId = targetUserIdRaw;
   }
 
   const buf = Buffer.from(await file.arrayBuffer());
@@ -195,7 +220,7 @@ export async function POST(req: Request) {
   const { data: plan, error: planErr } = await supabase
     .from("plans")
     .insert({
-      owner_user_id: user.id,
+      owner_user_id: targetUserId,
       slug,
       title: rawTitle,
       goal: null,

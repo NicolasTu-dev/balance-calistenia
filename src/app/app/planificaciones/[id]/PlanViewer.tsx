@@ -40,13 +40,13 @@ function normalizeBlockType(v: string | null) {
   return s;
 }
 
-// Heurística simple: si el block_type dice SKILL(S) => SKILLS; sino CALISTENIA
+// CALISTENIA solo si el bloque dice explícitamente "BASICO/S" o "CALISTENIA".
+// Todo lo demás (FRONT LEVER, PLANCHA, HANDSTAND, etc.) es SKILLS.
 function sectionFromBlockType(blockType: string | null): "CALISTENIA" | "SKILLS" | null {
   const t = normalizeBlockType(blockType);
   if (!t) return null;
-  if (t.includes("SKILL")) return "SKILLS";
-  // tu plan usa "BASICOS" o similares => CALISTENIA
-  return "CALISTENIA";
+  if (t.includes("BASICO") || t === "CALISTENIA") return "CALISTENIA";
+  return "SKILLS";
 }
 
 function pillClass(active: boolean) {
