@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 const WA_URL =
-  "https://wa.me/5491159288809?text=Hola%2C+quiero+consultar+sobre+la+planificaci%C3%B3n+mensual+de+calistenia";
+  "https://wa.me/5491157541046?text=Hola%2C+quiero+consultar+sobre+la+planificaci%C3%B3n+mensual+de+calistenia";
 
 const features = [
   "Planificación mensual personalizada",

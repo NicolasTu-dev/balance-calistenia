@@ -1,7 +1,7 @@
 "use client";
 
 const WHATSAPP_URL =
-  "https://wa.me/5491159288809?text=Hola%2C+quiero+consultar+sobre+Balance+Calistenia";
+  "https://wa.me/5491157541046?text=Hola%2C+quiero+consultar+sobre+Balance+Calistenia";
 
 export default function WhatsAppButton() {
   return (
