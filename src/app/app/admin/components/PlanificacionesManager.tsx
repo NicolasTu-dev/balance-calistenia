@@ -70,7 +70,8 @@ export default function PlanificacionesManager() {
     const res = await fetch("/api/admin/users");
     if (!res.ok) return;
     const data = await res.json();
-    setAllUsers(data.map((u: { id: string; email: string }) => ({ id: u.id, email: u.email })));
+    const list = Array.isArray(data) ? data : (data.users ?? []);
+    setAllUsers(list.map((u: { id: string; email: string }) => ({ id: u.id, email: u.email })));
   }
 
   useEffect(() => {

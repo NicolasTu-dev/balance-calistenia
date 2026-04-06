@@ -17,9 +17,9 @@ export default async function AdminPage({
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-xl font-semibold">Panel de administración</h1>
+        <h1 className="text-xl font-semibold">Panel Administrativo</h1>
         <p className="text-sm text-white/50 mt-1">
-          Gestioná roles y membresías de los usuarios.
+          Gestioná usuarios, membresías, tienda y planificaciones.
         </p>
       </div>
 
