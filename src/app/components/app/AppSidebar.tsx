@@ -52,7 +52,7 @@ export default async function AppSidebar() {
             </span>
             <div className="flex-1">
               <div className="font-semibold text-amber-200">Administración</div>
-              <div className="text-xs text-white/60">Gestión de roles</div>
+              <div className="text-xs text-white/60">Panel administrativo</div>
             </div>
           </Link>
         )}

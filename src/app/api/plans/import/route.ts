@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import { NextResponse } from "next/server";
 import { supabaseRoute } from "@/app/lib/supabase/server-route";
+import { supabaseAdmin } from "@/app/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -198,13 +199,18 @@ export async function POST(req: Request) {
 
   // Admins can import for another user via target_user_id
   let targetUserId = user.id;
+  let isAdminImport = false;
   if (targetUserIdRaw && typeof targetUserIdRaw === "string" && targetUserIdRaw !== user.id) {
     const { hasAdminAccess } = await import("@/app/lib/supabase/roles");
     if (!(await hasAdminAccess())) {
       return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
     }
     targetUserId = targetUserIdRaw;
+    isAdminImport = true;
   }
+
+  // Use admin client (bypasses RLS) when importing for another user
+  const db = isAdminImport ? supabaseAdmin() : supabase;
 
   const buf = Buffer.from(await file.arrayBuffer());
   const wb = XLSX.read(buf, { type: "buffer" });
@@ -217,7 +223,7 @@ export async function POST(req: Request) {
   const slug = slugify(rawTitle);
 
   // 1) Crear plan
-  const { data: plan, error: planErr } = await supabase
+  const { data: plan, error: planErr } = await db
     .from("plans")
     .insert({
       owner_user_id: targetUserId,
@@ -239,7 +245,7 @@ export async function POST(req: Request) {
   const planId = plan.id as number;
 
   // 2) Crear weeks 1..4
-  const { data: weeks, error: weeksErr } = await supabase
+  const { data: weeks, error: weeksErr } = await db
     .from("plan_weeks")
     .insert([1, 2, 3, 4].map((n) => ({
       plan_id: planId,
@@ -266,7 +272,7 @@ export async function POST(req: Request) {
   }));
 
   if (blocksPayload.length) {
-    const { error: blocksErr } = await supabase.from("plan_blocks").insert(blocksPayload);
+    const { error: blocksErr } = await db.from("plan_blocks").insert(blocksPayload);
     if (blocksErr) {
       return NextResponse.json(
         { ok: false, error: "blocks_insert_failed", details: blocksErr.message },
@@ -288,7 +294,7 @@ export async function POST(req: Request) {
   }));
 
   if (exPayload.length) {
-    const { error: exErr } = await supabase.from("plan_exercises").insert(exPayload);
+    const { error: exErr } = await db.from("plan_exercises").insert(exPayload);
     if (exErr) {
       return NextResponse.json(
         { ok: false, error: "ex_insert_failed", details: exErr.message },
