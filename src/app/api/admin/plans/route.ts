@@ -1,8 +1,10 @@
 import { hasAdminAccess } from "@/app/lib/supabase/roles";
 import { supabaseAdmin } from "@/app/lib/supabase/admin";
+import { supabaseRoute } from "@/app/lib/supabase/server-route";
 
 export async function GET() {
-  if (!(await hasAdminAccess())) {
+  const supabase = await supabaseRoute();
+  if (!(await hasAdminAccess(supabase))) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
 

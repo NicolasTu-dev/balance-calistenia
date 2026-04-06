@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase/admin";
+import { supabaseRoute } from "@/app/lib/supabase/server-route";
 import { hasAdminAccess } from "@/app/lib/supabase/roles";
 
 export async function POST(req: Request) {
-  const isAdmin = await hasAdminAccess();
+  const supabase = await supabaseRoute();
+  const isAdmin = await hasAdminAccess(supabase);
   if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { userId } = await req.json() as { userId: string };

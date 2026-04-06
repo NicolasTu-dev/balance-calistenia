@@ -202,7 +202,7 @@ export async function POST(req: Request) {
   let isAdminImport = false;
   if (targetUserIdRaw && typeof targetUserIdRaw === "string" && targetUserIdRaw !== user.id) {
     const { hasAdminAccess } = await import("@/app/lib/supabase/roles");
-    if (!(await hasAdminAccess())) {
+    if (!(await hasAdminAccess(supabase))) {
       return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
     }
     targetUserId = targetUserIdRaw;

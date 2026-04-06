@@ -1,11 +1,13 @@
 import { hasAdminAccess } from "@/app/lib/supabase/roles";
 import { supabaseAdmin } from "@/app/lib/supabase/admin";
+import { supabaseRoute } from "@/app/lib/supabase/server-route";
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await hasAdminAccess())) {
+  const supabase = await supabaseRoute();
+  if (!(await hasAdminAccess(supabase))) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
   const { id } = await params;
@@ -38,7 +40,8 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await hasAdminAccess())) {
+  const supabase = await supabaseRoute();
+  if (!(await hasAdminAccess(supabase))) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
   const { id } = await params;

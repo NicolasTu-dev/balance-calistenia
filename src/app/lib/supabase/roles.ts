@@ -1,5 +1,6 @@
 import { supabaseServer } from "./server";
 import { supabaseAdmin } from "./admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type UserRole = 'fundador' | 'administrador' | 'socio' | 'no_socio';
 
@@ -10,8 +11,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   no_socio: 'No Socio',
 };
 
-export async function getCurrentUserRole(): Promise<UserRole> {
-  const supabase = await supabaseServer();
+export async function getCurrentUserRole(client?: SupabaseClient): Promise<UserRole> {
+  const supabase = client ?? (await supabaseServer());
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return 'no_socio';
 
@@ -26,8 +27,8 @@ export async function getCurrentUserRole(): Promise<UserRole> {
   return (data?.role as UserRole) ?? 'no_socio';
 }
 
-export async function hasAdminAccess(): Promise<boolean> {
-  const role = await getCurrentUserRole();
+export async function hasAdminAccess(client?: SupabaseClient): Promise<boolean> {
+  const role = await getCurrentUserRole(client);
   return role === 'administrador';
 }
 

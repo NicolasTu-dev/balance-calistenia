@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { supabaseServer } from "@/app/lib/supabase/server";
+import { supabaseAdmin } from "@/app/lib/supabase/admin";
 import { requireActiveMembership } from "@/app/lib/supabase/access";
+import { hasAdminAccess } from "@/app/lib/supabase/roles";
 import { ChevronLeft } from "lucide-react";
 import PlanViewer from "./PlanViewer";
 
@@ -84,13 +86,18 @@ export default async function PlanByIdPage(props: PageProps) {
     );
   }
 
-  // Plan (aseguramos ownership)
-  const { data: plan, error: planErr } = await supabase
+  const isAdmin = await hasAdminAccess();
+
+  // Admins can view any plan; regular users only their own
+  const db = isAdmin ? supabaseAdmin() : supabase;
+  const planQuery = db
     .from("plans")
     .select("id, title, slug, active")
-    .eq("id", planId)
-    .eq("owner_user_id", user.id)
-    .single<DbPlan>();
+    .eq("id", planId);
+
+  if (!isAdmin) planQuery.eq("owner_user_id", user.id);
+
+  const { data: plan, error: planErr } = await planQuery.single<DbPlan>();
 
   if (planErr || !plan) {
     return (
@@ -103,7 +110,7 @@ export default async function PlanByIdPage(props: PageProps) {
     );
   }
 
-  const { data: weeks } = await supabase
+  const { data: weeks } = await db
     .from("plan_weeks")
     .select("id, week_number, name")
     .eq("plan_id", planId)
@@ -112,13 +119,13 @@ export default async function PlanByIdPage(props: PageProps) {
 
   const weekIds = (weeks ?? []).map((w) => w.id);
 
-  const { data: blocks } = await supabase
+  const { data: blocks } = await db
     .from("plan_blocks")
     .select("plan_week_id, day, block_type")
     .in("plan_week_id", weekIds.length ? weekIds : [-1])
     .returns<DbBlock[]>();
 
-  const { data: exercises } = await supabase
+  const { data: exercises } = await db
     .from("plan_exercises")
     .select("id, week_number, section, category, order_index, name, sets, notes")
     .eq("plan_id", planId)
