@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { CalendarDays, ChevronRight, Lock, MessageSquare } from "lucide-react";
+import { AlertTriangle, CalendarDays, ChevronRight, Lock, MessageSquare } from "lucide-react";
 import { requireActiveMembership } from "@/app/lib/supabase/access";
 import { supabaseServer } from "@/app/lib/supabase/server";
+import { WA_CONTACT_URL } from "@/app/lib/config";
 
 type DbPlan = {
   id: number;
@@ -57,6 +58,27 @@ export default async function PlanificacionesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Membresía vencida */}
+      {!membership.ok && count > 0 && (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3.5">
+          <AlertTriangle className="h-4 w-4 text-amber-300 mt-0.5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-200">Tu membresía venció</p>
+            <p className="text-xs text-amber-200/70 mt-0.5">
+              Tus planes están pausados. Contactá a tu coach para renovar.
+            </p>
+          </div>
+          <a
+            href={WA_CONTACT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-400/20 transition"
+          >
+            Renovar
+          </a>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between gap-6 flex-col md:flex-row">
         <div>

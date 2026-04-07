@@ -31,8 +31,10 @@ export default async function AppTopbar() {
           <form
             action={async () => {
               "use server";
+              const { redirect } = await import("next/navigation");
               const supabase = await supabaseServer();
               await supabase.auth.signOut();
+              redirect("/login");
             }}
           >
             <button

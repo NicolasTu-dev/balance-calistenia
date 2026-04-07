@@ -17,27 +17,26 @@ export default function CuentaPage() {
     setError(null);
     setSuccess(null);
 
-    if (!next || !confirm) { setError("Completá todos los campos."); return; }
+    if (!current || !next || !confirm) { setError("Completá todos los campos."); return; }
     if (next.length < 6) { setError("La contraseña debe tener al menos 6 caracteres."); return; }
     if (next !== confirm) { setError("Las contraseñas no coinciden."); return; }
+    if (current === next) { setError("La nueva contraseña debe ser distinta a la actual."); return; }
 
     setLoading(true);
     const supabase = supabaseBrowser();
 
-    // Re-authenticate with current password first
+    // Re-authenticate with current password
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.email) { setError("No se pudo verificar tu sesión."); setLoading(false); return; }
 
-    if (current) {
-      const { error: signInErr } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: current,
-      });
-      if (signInErr) {
-        setError("La contraseña actual es incorrecta.");
-        setLoading(false);
-        return;
-      }
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: current,
+    });
+    if (signInErr) {
+      setError("La contraseña actual es incorrecta.");
+      setLoading(false);
+      return;
     }
 
     const { error: updateErr } = await supabase.auth.updateUser({ password: next });
@@ -72,6 +71,7 @@ export default function CuentaPage() {
             <label className="block text-xs text-white/60 mb-1.5">Contraseña actual</label>
             <input
               type="password"
+              required
               value={current}
               onChange={(e) => setCurrent(e.target.value)}
               placeholder="Tu contraseña actual"

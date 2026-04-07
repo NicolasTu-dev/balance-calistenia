@@ -84,8 +84,8 @@ export default function UserRoleTable({ myRole }: { myRole: UserRole }) {
         <tbody className="divide-y divide-white/5">
           {users.map((user) => (
             <tr key={user.id} className="hover:bg-white/2 transition">
-              <td className="px-4 py-3">
-                <span className="font-medium text-white/90">{user.email}</span>
+              <td className="px-4 py-3 max-w-40 md:max-w-none">
+                <span className="font-medium text-white/90 truncate block">{user.email}</span>
               </td>
               <td className="px-4 py-3">
                 <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ${ROLE_BADGE_CLASSES[user.role]}`}>

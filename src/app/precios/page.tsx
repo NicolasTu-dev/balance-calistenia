@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { CheckCircle2, ChevronDown } from "lucide-react";
+import { PRICING, WA_CONTACT_URL } from "@/app/lib/config";
 
 export const metadata = {
   title: "Precios — Balance Calistenia",
-  description:
-    "Planificación mensual de calistenia por $40.000 ARS. Acceso al panel, plan personalizado y seguimiento.",
+  description: `Planificación mensual de calistenia por ${PRICING.label} ARS. Acceso al panel, plan personalizado y seguimiento.`,
 };
 
-const WA_URL =
-  "https://wa.me/5491157541046?text=Hola%2C+quiero+consultar+sobre+la+planificaci%C3%B3n+mensual+de+calistenia";
+const WA_URL = WA_CONTACT_URL;
 
 const features = [
   "Planificación mensual personalizada",
@@ -62,8 +61,8 @@ export default function PreciosPage() {
 
         {/* Price */}
         <div className="mt-6 flex items-baseline gap-2">
-          <span className="text-5xl font-bold tracking-tight">$40.000</span>
-          <span className="text-lg text-white/60">/ mes</span>
+          <span className="text-5xl font-bold tracking-tight">{PRICING.amount}</span>
+          <span className="text-lg text-white/60">/ {PRICING.period}</span>
         </div>
         <p className="mt-1 text-sm text-white/50">Pesos argentinos (ARS)</p>
 

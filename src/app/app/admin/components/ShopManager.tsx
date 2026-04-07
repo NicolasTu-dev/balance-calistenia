@@ -55,6 +55,7 @@ export default function ShopManager() {
   const [saving, setSaving] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [uploadingExtra, setUploadingExtra] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const colorFileRefs = useRef<(HTMLInputElement | null)[]>([]);
   const extraFileRef = useRef<HTMLInputElement | null>(null);
 
@@ -68,10 +69,23 @@ export default function ShopManager() {
   useEffect(() => { fetchProducts(); }, []);
 
   async function uploadImage(file: File): Promise<string | null> {
+    setUploadError(null);
+    if (file.size > 8 * 1024 * 1024) {
+      setUploadError("La imagen no puede superar 8MB.");
+      return null;
+    }
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Solo se permiten archivos de imagen.");
+      return null;
+    }
     const fd = new FormData();
     fd.append("file", file);
     const res = await fetch("/api/admin/shop/upload", { method: "POST", body: fd });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      setUploadError(`Error al subir: ${errData?.error ?? res.status}`);
+      return null;
+    }
     const { url } = await res.json();
     return url as string;
   }
@@ -243,6 +257,14 @@ export default function ShopManager() {
               ))}
             </div>
           </div>
+
+          {/* Upload error */}
+          {uploadError && (
+            <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-2.5 text-xs text-red-300 flex items-center justify-between">
+              <span>{uploadError}</span>
+              <button type="button" onClick={() => setUploadError(null)} className="text-red-400 hover:text-red-300 ml-3">✕</button>
+            </div>
+          )}
 
           {/* Colores con imágenes */}
           <div>

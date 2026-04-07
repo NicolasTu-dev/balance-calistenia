@@ -90,7 +90,9 @@ export default function MembershipTable() {
         <tbody className="divide-y divide-white/5">
           {users.map((user) => (
             <tr key={user.id} className="hover:bg-white/2 transition">
-              <td className="px-4 py-3 font-medium text-white/90">{user.email}</td>
+              <td className="px-4 py-3 max-w-40 md:max-w-none">
+                <span className="font-medium text-white/90 truncate block">{user.email}</span>
+              </td>
               <td className="px-4 py-3">
                 {user.hasActiveMembership ? (
                   <span className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium bg-emerald-400/10 text-emerald-300 border border-emerald-400/20">Activa</span>
