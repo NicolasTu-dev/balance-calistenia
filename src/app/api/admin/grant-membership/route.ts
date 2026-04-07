@@ -14,14 +14,30 @@ export async function POST(req: Request) {
   const admin = supabaseAdmin();
   const endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Upsert entitlement
-  const { error } = await admin
+  // Check if entitlement already exists
+  const { data: existing } = await admin
     .from("entitlements")
-    .upsert({ user_id: userId, status: "active", ends_at: endsAt }, { onConflict: "user_id" });
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-  if (error) {
-    console.error("[grant-membership] upsert error:", error);
-    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
+  let entitlementError;
+  if (existing) {
+    const { error } = await admin
+      .from("entitlements")
+      .update({ status: "active", ends_at: endsAt })
+      .eq("user_id", userId);
+    entitlementError = error;
+  } else {
+    const { error } = await admin
+      .from("entitlements")
+      .insert({ user_id: userId, status: "active", ends_at: endsAt });
+    entitlementError = error;
+  }
+
+  if (entitlementError) {
+    console.error("[grant-membership] entitlement error:", entitlementError);
+    return NextResponse.json({ error: entitlementError.message, code: entitlementError.code }, { status: 500 });
   }
 
   // Set role to 'socio' if they don't already have a higher role
