@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutGrid, Shield } from "lucide-react";
+import { LayoutGrid, Shield, KeyRound } from "lucide-react";
 import { getCurrentUserRole } from "@/app/lib/supabase/roles";
 
 export default async function AppSidebar() {
@@ -39,6 +39,19 @@ export default async function AppSidebar() {
           <div className="flex-1">
             <div className="font-semibold">Planificaciones</div>
             <div className="text-xs text-white/60">Tus planes mensuales</div>
+          </div>
+        </Link>
+
+        <Link
+          href="/app/cuenta"
+          className="group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm border border-transparent hover:border-white/10 hover:bg-black/20 transition"
+        >
+          <span className="h-9 w-9 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+            <KeyRound className="h-4 w-4 text-white/50" />
+          </span>
+          <div className="flex-1">
+            <div className="font-semibold">Mi cuenta</div>
+            <div className="text-xs text-white/60">Cambiar contraseña</div>
           </div>
         </Link>
 
