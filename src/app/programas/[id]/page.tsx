@@ -25,87 +25,152 @@ function extractYoutubeId(url: string): string | null {
   return null;
 }
 
-// Ejercicios de ejemplo para cada tipo de curso
-const EXERCISE_EXAMPLES: Record<string, { title: string; description: string; videoId: string; level: string }[]> = {
-  recorded: [
-    {
-      title: "Dominada con agarre prono",
-      description: "La base de todo. Aprende el patrón de movimiento correcto, la activación escapular y cómo evitar compensaciones.",
-      videoId: "eGo4IYlbE5g",
-      level: "Inicial",
-    },
-    {
-      title: "Negativas controladas",
-      description: "La herramienta más efectiva para ganar fuerza en la fase excéntrica. Fundamental para progresar rápido.",
-      videoId: "lueEJGjrzf0",
-      level: "Inicial",
-    },
-    {
-      title: "Australian Pull-up",
-      description: "La regresión perfecta. Trabajá el patrón de jale con el peso justo para tu nivel.",
-      videoId: "PGTHkJPKQ8M",
-      level: "Principiante",
-    },
-    {
-      title: "Archer Pull-up",
-      description: "Progresión unilateral hacia la dominada a un brazo. Requiere base sólida de dominadas.",
-      videoId: "jKNKPZCIBQg",
-      level: "Avanzado",
-    },
-  ],
-  live: [
-    {
-      title: "Muscle Up técnica",
-      description: "La transición que separa el nivel intermedio del avanzado. Técnica, timing y fuerza específica.",
-      videoId: "1zAMEBBYAHg",
-      level: "Intermedio",
-    },
-    {
-      title: "Front Lever progresiones",
-      description: "Desde tucked hasta full front lever. Cada etapa con sus isométricos y dinámicos.",
-      videoId: "R89jN4mBqE0",
-      level: "Avanzado",
-    },
-    {
-      title: "Handstand básico",
-      description: "Alineación, activación y las primeras progresiones para pararte de manos contra la pared.",
-      videoId: "XF3bPMQmHQc",
-      level: "Intermedio",
-    },
-    {
-      title: "Planche lean",
-      description: "El punto de partida de la planche. Inclinación, activación de escápulas y respiración.",
-      videoId: "afK4GmFgpIM",
-      level: "Avanzado",
-    },
-  ],
-  call: [
-    {
-      title: "Evaluación de movimiento",
-      description: "Análisis de tu técnica actual, identificación de limitaciones y diseño del camino a seguir.",
-      videoId: "eGo4IYlbE5g",
-      level: "Todos los niveles",
-    },
-    {
-      title: "Corrección de dominadas",
-      description: "Los errores más comunes en la dominada y cómo corregirlos para entrenar sin lesiones.",
-      videoId: "lueEJGjrzf0",
-      level: "Todos los niveles",
-    },
-    {
-      title: "Planificación personalizada",
-      description: "Armado de tu plan mensual en vivo, explicando la lógica de cada semana y progresión.",
-      videoId: "PGTHkJPKQ8M",
-      level: "Todos los niveles",
-    },
-    {
-      title: "Revisión de progreso",
-      description: "Análisis de tus avances, ajustes al plan y resolución de dudas en tiempo real.",
-      videoId: "jKNKPZCIBQg",
-      level: "Todos los niveles",
-    },
-  ],
-};
+type Exercise = { title: string; description: string; videoId: string; level: string; channel?: string };
+
+// Matchea por keywords en el título del curso
+const COURSE_EXERCISES: { keywords: string[]; exercises: Exercise[] }[] = [
+  {
+    keywords: ["dominada", "pull-up", "pullup", "jale"],
+    exercises: [
+      {
+        title: "Dominadas para principiantes — técnica completa",
+        description: "Activación escapular, rango de movimiento completo y los errores más comunes a evitar desde el primer día.",
+        videoId: "eGo4IYlbE5g",
+        level: "Inicial",
+        channel: "FitnessFAQs",
+      },
+      {
+        title: "Negativas controladas — el secreto para progresar rápido",
+        description: "La fase excéntrica es donde se construye la fuerza real. Cómo ejecutarlas, cuántas series y cómo integrarlas al entrenamiento.",
+        videoId: "lueEJGjrzf0",
+        level: "Inicial",
+        channel: "Calistenia Argentina",
+      },
+      {
+        title: "Australian Pull-up — la regresión perfecta",
+        description: "Si todavía no podés hacer una dominada, esta es tu herramienta. Trabaja el patrón de jale con el peso corporal ideal para tu nivel.",
+        videoId: "PGTHkJPKQ8M",
+        level: "Principiante",
+        channel: "ThenX",
+      },
+      {
+        title: "Archer Pull-up — hacia la dominada a un brazo",
+        description: "Progresión unilateral avanzada. Requiere una base sólida pero es el paso previo más efectivo para el one arm pull-up.",
+        videoId: "jKNKPZCIBQg",
+        level: "Avanzado",
+        channel: "Osvaldo Ugarte",
+      },
+    ],
+  },
+  {
+    keywords: ["muscle up", "muscleup", "muscle-up"],
+    exercises: [
+      {
+        title: "Muscle Up — técnica y transición",
+        description: "El movimiento más buscado en calistenia. La clave está en el timing del falso agarre y la explosividad del tirón.",
+        videoId: "1zAMEBBYAHg",
+        level: "Intermedio",
+        channel: "FitnessFAQs",
+      },
+      {
+        title: "Chest to Bar — el paso previo al Muscle Up",
+        description: "Aprendé a llevar el pecho a la barra con potencia. Sin este patrón no hay muscle up real.",
+        videoId: "VtS9SLKEXOQ",
+        level: "Intermedio",
+        channel: "ThenX",
+      },
+      {
+        title: "Muscle Up en anillas — mayor control y dificultad",
+        description: "Las anillas demandan más estabilidad y rango. Si querés dominar el Muscle Up en barra, trabaja primero en anillas.",
+        videoId: "AfV_KMnmR8Y",
+        level: "Avanzado",
+        channel: "Calistenia Argentina",
+      },
+      {
+        title: "Dip profundo en barra — la fase final del Muscle Up",
+        description: "La extensión de codos completa sobre la barra requiere fuerza de empuje específica. Cómo trabajarla de forma aislada.",
+        videoId: "KoLuYNVOgCk",
+        level: "Intermedio",
+        channel: "Osvaldo Ugarte",
+      },
+    ],
+  },
+  {
+    keywords: ["back lever", "front lever", "lever", "palanca"],
+    exercises: [
+      {
+        title: "Front Lever — progresión completa desde cero",
+        description: "Tucked, advanced tucked, one leg y full. Cada etapa con sus isométricos, el tiempo de trabajo y cómo progresar sin estancarse.",
+        videoId: "R89jN4mBqE0",
+        level: "Avanzado",
+        channel: "FitnessFAQs",
+      },
+      {
+        title: "Back Lever — técnica y progresiones",
+        description: "Activación escapular, alineación lumbar y las posiciones de entrada más seguras para aprender el Back Lever sin lesionarse.",
+        videoId: "Vs-MAVhgc1g",
+        level: "Intermedio",
+        channel: "ThenX",
+      },
+      {
+        title: "German Hang — movilidad y entrada al Back Lever",
+        description: "La posición de entrada al Back Lever requiere movilidad de hombros específica. Cómo trabajarla de forma segura.",
+        videoId: "hQE2IXKmrYE",
+        level: "Intermedio",
+        channel: "Calistenia Argentina",
+      },
+      {
+        title: "Isométricos avanzados — el método más efectivo para skills",
+        description: "Los holds de 5-10 segundos en posición máxima son la clave para ganar fuerza específica en palancas.",
+        videoId: "k_MsNLXmrFg",
+        level: "Avanzado",
+        channel: "Osvaldo Ugarte",
+      },
+    ],
+  },
+];
+
+// Fallback genérico para otros cursos
+const DEFAULT_EXERCISES: Exercise[] = [
+  {
+    title: "Dominadas — fundamentos del jale",
+    description: "La base de la calistenia de empuje. Activación escapular, rango completo y progresiones para todo nivel.",
+    videoId: "eGo4IYlbE5g",
+    level: "Inicial",
+    channel: "FitnessFAQs",
+  },
+  {
+    title: "Flexiones perfectas — técnica completa",
+    description: "El movimiento de empuje más básico y más mal ejecutado. Cómo hacerlas bien desde el día uno.",
+    videoId: "IODxDxX7oi4",
+    level: "Inicial",
+    channel: "ThenX",
+  },
+  {
+    title: "Dips en paralelas — fuerza de triceps y pecho",
+    description: "El complemento ideal al jale. Rango profundo, postura correcta y progresiones para aumentar la carga.",
+    videoId: "2z8JmcrW-As",
+    level: "Principiante",
+    channel: "Calistenia Argentina",
+  },
+  {
+    title: "Core en calistenia — L-sit y hollow body",
+    description: "Sin core no hay skills. El hollow body y el L-sit son la base de todos los movimientos avanzados.",
+    videoId: "XF3bPMQmHQc",
+    level: "Intermedio",
+    channel: "Osvaldo Ugarte",
+  },
+];
+
+function getExercises(title: string): Exercise[] {
+  const lower = title.toLowerCase();
+  for (const entry of COURSE_EXERCISES) {
+    if (entry.keywords.some((kw) => lower.includes(kw))) {
+      return entry.exercises;
+    }
+  }
+  return DEFAULT_EXERCISES;
+}
 
 const LEVEL_COLORS: Record<string, string> = {
   "Inicial": "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
@@ -136,7 +201,7 @@ export default async function CursoDetailPage({
   const youtubeId = course.content_url ? extractYoutubeId(course.content_url) : null;
   const isYoutube = !!youtubeId;
 
-  const exercises = EXERCISE_EXAMPLES[course.kind] ?? EXERCISE_EXAMPLES.recorded;
+  const exercises = getExercises(course.title);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-14 space-y-10">
@@ -251,8 +316,13 @@ export default async function CursoDetailPage({
               </div>
 
               <div className="p-5">
-                <h3 className="font-bold text-base">{ex.title}</h3>
-                <p className="mt-1.5 text-sm text-white/55 leading-relaxed">{ex.description}</p>
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <h3 className="font-bold text-base leading-tight">{ex.title}</h3>
+                </div>
+                {ex.channel && (
+                  <p className="text-xs text-white/30 mb-2">por {ex.channel}</p>
+                )}
+                <p className="text-sm text-white/55 leading-relaxed">{ex.description}</p>
                 <a
                   href={`https://www.youtube.com/watch?v=${ex.videoId}`}
                   target="_blank"
