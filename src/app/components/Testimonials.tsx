@@ -21,24 +21,38 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="mt-14">
-      <h2 className="text-2xl font-semibold">Lo que dicen los alumnos</h2>
-      <p className="mt-2 text-white/60">
-        Resultados reales de personas que entrenaron con método.
-      </p>
+    <section>
+      <div className="mb-10">
+        <p className="text-xs font-semibold tracking-widest uppercase text-white/40 mb-3">Testimonios</p>
+        <h2 className="text-3xl font-bold tracking-tight">Lo que dicen los alumnos</h2>
+        <p className="mt-2 text-white/50">
+          Resultados reales de personas que entrenaron con método.
+        </p>
+      </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
         {testimonials.map((t) => (
           <div
             key={t.name}
-            className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col gap-4"
+            className="rounded-3xl border border-white/10 bg-white/5 p-7 flex flex-col gap-4 relative overflow-hidden"
           >
-            <p className="text-white/80 text-sm leading-relaxed">
-              &ldquo;{t.quote}&rdquo;
+            {/* Big quote mark */}
+            <span className="absolute -top-2 -left-1 text-8xl font-black text-white/5 select-none leading-none">
+              &ldquo;
+            </span>
+
+            <p className="relative text-white/75 text-sm leading-relaxed pt-4">
+              {t.quote}
             </p>
-            <div className="mt-auto pt-4 border-t border-white/10">
-              <p className="text-sm font-semibold text-white">{t.name}</p>
-              <p className="text-xs text-white/40 mt-0.5">{t.tag}</p>
+
+            <div className="mt-auto pt-4 border-t border-white/10 flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center shrink-0">
+                <span className="text-xs font-bold text-emerald-300">{t.name.charAt(0)}</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{t.name}</p>
+                <p className="text-xs text-white/40">{t.tag}</p>
+              </div>
             </div>
           </div>
         ))}

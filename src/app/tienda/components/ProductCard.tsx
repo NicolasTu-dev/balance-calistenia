@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { ImageOff } from "lucide-react";
 
 export type ProductColor = { label: string; image: string };
 
@@ -14,7 +15,7 @@ export type Product = {
   badge?: string;
   colors: ProductColor[];
   sizes: string[];
-  extraImages?: string[]; // front/back toggle
+  extraImages?: string[];
 };
 
 const WHATSAPP_NUMBER = "5491157541046";
@@ -26,13 +27,44 @@ function buildWhatsappUrl(product: Product, size: string, color: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
 }
 
+function ProductImage({ src, alt }: { src: string; alt: string }) {
+  const [errored, setErrored] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  if (!src || errored) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center gap-2 text-white/20">
+        <ImageOff className="h-8 w-8" />
+        <span className="text-xs">Sin imagen</span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {!loaded && (
+        <div className="absolute inset-0 animate-pulse bg-white/5" />
+      )}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className={`object-cover transition-all duration-500 group-hover:scale-105 ${loaded ? "opacity-100" : "opacity-0"}`}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        onLoad={() => setLoaded(true)}
+        onError={() => setErrored(true)}
+      />
+    </>
+  );
+}
+
 export default function ProductCard({ product }: { product: Product }) {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState("");
   const [imageIndex, setImageIndex] = useState(0);
 
-  const allImages = [selectedColor.image, ...(product.extraImages ?? [])];
-  const currentImage = allImages[imageIndex] ?? selectedColor.image;
+  const allImages = [selectedColor?.image, ...(product.extraImages ?? [])].filter(Boolean);
+  const currentImage = allImages[imageIndex] ?? "";
 
   function handleColorChange(color: ProductColor) {
     setSelectedColor(color);
@@ -43,13 +75,7 @@ export default function ProductCard({ product }: { product: Product }) {
     <div className="group flex flex-col rounded-3xl border border-white/10 bg-white/5 overflow-hidden hover:border-white/20 transition-colors">
       {/* Imagen */}
       <div className="relative aspect-4/5 overflow-hidden bg-white/5">
-        <Image
-          src={currentImage}
-          alt={product.name}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+        <ProductImage src={currentImage} alt={product.name} />
 
         {/* Badge */}
         {product.badge && (
@@ -60,7 +86,7 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        {/* Toggle frente/espalda si hay extra images */}
+        {/* Puntos navegación */}
         {allImages.length > 1 && (
           <div className="absolute bottom-3 right-3 flex gap-1.5">
             {allImages.map((_, i) => (
@@ -75,7 +101,6 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        {/* Label frente/espalda */}
         {allImages.length > 1 && (
           <div className="absolute bottom-3 left-3">
             <span className="rounded-lg bg-black/40 backdrop-blur-sm px-2 py-1 text-xs text-white/70">
@@ -102,21 +127,23 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         </div>
 
-        <p className="text-sm text-white/60 leading-relaxed">{product.description}</p>
+        {product.description && (
+          <p className="text-sm text-white/60 leading-relaxed">{product.description}</p>
+        )}
 
         {/* Colores */}
         {product.colors.length > 1 && (
           <div>
             <p className="text-xs text-white/40 mb-2">
-              Color: <span className="text-white/70">{selectedColor.label}</span>
+              Color: <span className="text-white/70">{selectedColor?.label}</span>
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {product.colors.map((color) => (
                 <button
                   key={color.label}
                   onClick={() => handleColorChange(color)}
                   className={`rounded-xl px-3 py-1.5 text-xs border transition-all ${
-                    selectedColor.label === color.label
+                    selectedColor?.label === color.label
                       ? "border-white/40 bg-white/15 text-white"
                       : "border-white/10 bg-white/5 text-white/50 hover:border-white/20 hover:text-white/80"
                   }`}
@@ -159,7 +186,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="mt-auto pt-2">
           {selectedSize ? (
             <a
-              href={buildWhatsappUrl(product, selectedSize, selectedColor.label)}
+              href={buildWhatsappUrl(product, selectedSize, selectedColor?.label ?? "")}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full rounded-2xl bg-linear-to-r from-emerald-400 to-cyan-400 px-4 py-3 text-sm font-semibold text-black hover:opacity-90 transition-opacity"
