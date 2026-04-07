@@ -19,7 +19,10 @@ export async function POST(req: Request) {
     .from("entitlements")
     .upsert({ user_id: userId, status: "active", ends_at: endsAt }, { onConflict: "user_id" });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[grant-membership] upsert error:", error);
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
+  }
 
   // Set role to 'socio' if they don't already have a higher role
   const { data: existingRole } = await admin

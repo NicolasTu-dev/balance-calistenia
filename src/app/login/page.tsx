@@ -1,136 +1,244 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { supabaseBrowser } from "@/app/lib/supabase/client";
-import { Mail, RefreshCw, PencilLine, ExternalLink } from "lucide-react";
+import { LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+type Mode = "login" | "register";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [mode, setMode] = useState<Mode>("login");
+
   const [email, setEmail] = useState("");
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const canSubmit = useMemo(() => {
-    return email.trim().length > 5 && email.includes("@");
-  }, [email]);
-
-  async function sendLink(e?: FormEvent<HTMLFormElement>) {
-    e?.preventDefault();
+  function switchMode(m: Mode) {
+    setMode(m);
     setError(null);
-    setLoading(true);
-
-    try {
-      const supabase = supabaseBrowser();
-      const redirectTo =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/auth/callback?next=/app/planificaciones`
-          : undefined;
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: { emailRedirectTo: redirectTo },
-      });
-
-      if (error) throw error;
-      setSentTo(email.trim());
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      setError(err?.message ?? "No se pudo enviar el link. Intentá nuevamente.");
-    } finally {
-      setLoading(false);
-    }
+    setSuccess(null);
+    setPassword("");
+    setConfirmPassword("");
   }
 
-  function openWebmail() {
-    window.open("https://mail.google.com", "_blank", "noopener,noreferrer");
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!email.trim() || !password) {
+      setError("Completá todos los campos.");
+      return;
+    }
+
+    if (mode === "register") {
+      if (password.length < 6) {
+        setError("La contraseña debe tener al menos 6 caracteres.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("Las contraseñas no coinciden.");
+        return;
+      }
+    }
+
+    setLoading(true);
+    const supabase = supabaseBrowser();
+
+    if (mode === "login") {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        setError(
+          error.message.includes("Invalid login")
+            ? "Email o contraseña incorrectos."
+            : error.message
+        );
+        setLoading(false);
+        return;
+      }
+
+      router.push("/app/planificaciones");
+      router.refresh();
+    } else {
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        setError(
+          error.message.includes("already registered")
+            ? "Este email ya está registrado. Iniciá sesión."
+            : error.message
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Auto sign in after register
+      const { error: loginErr } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (loginErr) {
+        setSuccess("Cuenta creada. Ya podés iniciar sesión.");
+        setMode("login");
+        setPassword("");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/app/planificaciones");
+      router.refresh();
+    }
+
+    setLoading(false);
   }
 
   return (
     <main className="min-h-[calc(100vh-64px)] flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.03)] p-6">
-        <div className="flex items-start gap-3">
-          <div className="h-11 w-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-            <Mail className="h-5 w-5 text-emerald-200" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold">Ingresar</h1>
-            <p className="text-sm text-white/60 mt-1">
-              Te enviamos un link seguro a tu email para ingresar.
-            </p>
-          </div>
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.03)] overflow-hidden">
+
+        {/* Tabs */}
+        <div className="flex border-b border-white/10">
+          <button
+            type="button"
+            onClick={() => switchMode("login")}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 text-sm font-semibold transition border-b-2 ${
+              mode === "login"
+                ? "border-emerald-400 text-emerald-300 bg-emerald-400/5"
+                : "border-transparent text-white/50 hover:text-white/80"
+            }`}
+          >
+            <LogIn className="h-4 w-4" />
+            Iniciar sesión
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("register")}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 text-sm font-semibold transition border-b-2 ${
+              mode === "register"
+                ? "border-emerald-400 text-emerald-300 bg-emerald-400/5"
+                : "border-transparent text-white/50 hover:text-white/80"
+            }`}
+          >
+            <UserPlus className="h-4 w-4" />
+            Registrarse
+          </button>
         </div>
 
-        {!sentTo ? (
-          <form onSubmit={sendLink} className="mt-6 space-y-3">
-            <label className="block text-sm text-white/70">Email</label>
-            <input
-              className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-300/40"
-              placeholder="tu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              autoComplete="email"
-              required
-            />
+        <div className="p-6">
+          <h1 className="text-xl font-bold mb-1">
+            {mode === "login" ? "Bienvenido de vuelta" : "Crear cuenta"}
+          </h1>
+          <p className="text-sm text-white/50 mb-5">
+            {mode === "login"
+              ? "Ingresá con tu email y contraseña."
+              : "Completá tus datos para acceder a la plataforma."}
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
+            <div>
+              <label className="block text-xs text-white/60 mb-1.5">Email</label>
+              <input
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300/40 placeholder:text-white/25"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-xs text-white/60 mb-1.5">Contraseña</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === "register" ? "Mínimo 6 caracteres" : "••••••••"}
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 pr-11 text-sm outline-none focus:ring-2 focus:ring-emerald-300/40 placeholder:text-white/25"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm password (register only) */}
+            {mode === "register" && (
+              <div>
+                <label className="block text-xs text-white/60 mb-1.5">Confirmar contraseña</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repetí tu contraseña"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300/40 placeholder:text-white/25"
+                />
+              </div>
+            )}
+
+            {/* Error / success */}
+            {error && (
+              <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-2.5 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2.5 text-sm text-emerald-300">
+                {success}
+              </div>
+            )}
 
             <button
               type="submit"
-              disabled={!canSubmit || loading}
-              className="w-full rounded-2xl py-3 font-semibold text-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition disabled:opacity-50"
+              disabled={loading}
+              className="w-full rounded-2xl py-3 font-semibold text-black bg-linear-to-r from-emerald-300 via-cyan-300 to-sky-300 hover:opacity-90 transition disabled:opacity-50"
             >
-              {loading ? "Enviando..." : "Enviar link"}
+              {loading
+                ? mode === "login" ? "Ingresando…" : "Creando cuenta…"
+                : mode === "login" ? "Ingresar" : "Crear cuenta"}
             </button>
-
-            {error && <p className="text-sm text-red-300">{error}</p>}
-
-            <p className="text-xs text-white/55 mt-2">
-              Tip: revisá <b>Spam</b> o <b>Promociones</b>. Puede tardar 10–30 segundos.
-            </p>
           </form>
-        ) : (
-          <div className="mt-6 space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-sm text-white/70">Link enviado a:</p>
-              <p className="mt-1 font-semibold">{sentTo}</p>
-              <p className="mt-2 text-xs text-white/55">
-                Abrí tu correo y tocá el botón “Ingresar”. Si no llega, podés reenviar.
-              </p>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {mode === "login" && (
+            <p className="mt-4 text-center text-xs text-white/40">
+              ¿Primera vez?{" "}
               <button
                 type="button"
-                onClick={openWebmail}
-                className="rounded-2xl py-3 font-semibold bg-white/5 border border-white/10 hover:bg-white/10 transition inline-flex items-center justify-center gap-2"
+                onClick={() => switchMode("register")}
+                className="text-emerald-400 hover:text-emerald-300 transition"
               >
-                Abrir correo <ExternalLink className="h-4 w-4" />
+                Creá tu cuenta
               </button>
-
-              <button
-                type="button"
-                onClick={() => sendLink()}
-                disabled={loading}
-                className="rounded-2xl py-3 font-semibold bg-white/5 border border-white/10 hover:bg-white/10 transition inline-flex items-center justify-center gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Reenviar
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setSentTo(null);
-                setEmail(sentTo);
-                setError(null);
-              }}
-              className="w-full rounded-2xl py-3 font-semibold bg-white/5 border border-white/10 hover:bg-white/10 transition inline-flex items-center justify-center gap-2"
-            >
-              <PencilLine className="h-4 w-4" />
-              Cambiar email
-            </button>
-          </div>
-        )}
+            </p>
+          )}
+        </div>
       </div>
     </main>
   );

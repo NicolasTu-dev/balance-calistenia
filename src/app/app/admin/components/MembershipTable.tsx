@@ -40,7 +40,8 @@ export default function MembershipTable() {
         setFeedback((f) => ({ ...f, [userId]: "Guardado" }));
         setTimeout(() => setFeedback((f) => { const n = { ...f }; delete n[userId]; return n; }), 2000);
       } else {
-        setFeedback((f) => ({ ...f, [userId]: "Error" }));
+        const errData = await res.json().catch(() => ({}));
+        setFeedback((f) => ({ ...f, [userId]: `Error ${res.status}: ${errData?.error ?? "desconocido"}` }));
       }
     });
   }
