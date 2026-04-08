@@ -67,13 +67,22 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
     return Array.from(daySet).sort((a, b) => a - b);
   }, [blocks]);
 
+  // Block sort priority: EEC GENERAL → EEC ESPECIFICA → everything else (EJERCICIOS, etc.)
+  function blockPriority(name: string): number {
+    const upper = name.toUpperCase();
+    if (upper.includes("EEC GENERAL")) return 0;
+    if (upper.includes("EEC ESPECIF")) return 1;
+    if (upper.includes("EEC")) return 2;
+    return 99;
+  }
+
   // Group exercises for selected week by block_name → category
   const groupedBlocks = useMemo(() => {
     const weekExs = exercises
       .filter((e) => e.week_number === week)
       .sort((a, b) => (a.order_index ?? 9999) - (b.order_index ?? 9999));
 
-    // Preserve insertion order of blocks
+    // Preserve insertion order of blocks, then re-sort by priority
     const blockOrder: string[] = [];
     const blockMap = new Map<string, {
       section: "CALISTENIA" | "SKILLS";
@@ -92,6 +101,9 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
       if (!block.categories.has(catKey)) block.categories.set(catKey, []);
       block.categories.get(catKey)!.push(ex);
     }
+
+    // Sort blocks: EEC GENERAL first, EEC ESPECIFICA second, then the rest
+    blockOrder.sort((a, b) => blockPriority(a) - blockPriority(b));
 
     return blockOrder.map((key) => ({
       blockName: key,
