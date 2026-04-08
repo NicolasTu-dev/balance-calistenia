@@ -133,6 +133,7 @@ export default async function PlanByIdPage(props: PageProps) {
     .order("week_number", { ascending: true })
     .order("section", { ascending: true })
     .order("order_index", { ascending: true })
+    .order("id", { ascending: true })
     .returns<DbExercise[]>();
 
   // Cronología (resumen visual)

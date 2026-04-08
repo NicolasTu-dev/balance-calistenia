@@ -108,10 +108,15 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
       const sortedCats = Array.from(block.categories.entries()).sort(
         ([a], [b]) => sectionPriority(a) - sectionPriority(b)
       );
-      // Within each category, sort exercises by order_index
+      // Within each category, sort exercises by order_index, then by id (insertion order)
       const sortedCatsWithOrder = sortedCats.map(([catKey, exs]) => [
         catKey,
-        [...exs].sort((a, b) => (a.order_index ?? 9999) - (b.order_index ?? 9999)),
+        [...exs].sort((a, b) => {
+          const oa = a.order_index ?? 9999;
+          const ob = b.order_index ?? 9999;
+          if (oa !== ob) return oa - ob;
+          return a.id - b.id; // preserve Excel row order for equal order_index
+        }),
       ] as [string, DbExercise[]]);
 
       return {
