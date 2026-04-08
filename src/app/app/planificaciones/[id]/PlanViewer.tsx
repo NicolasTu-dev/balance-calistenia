@@ -67,22 +67,20 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
     return Array.from(daySet).sort((a, b) => a - b);
   }, [blocks]);
 
-  // Block sort priority: EEC GENERAL → EEC ESPECIFICA → everything else (EJERCICIOS, etc.)
-  function blockPriority(name: string): number {
-    const upper = name.toUpperCase();
-    if (upper.includes("EEC GENERAL")) return 0;
-    if (upper.includes("EEC ESPECIF")) return 1;
-    if (upper.includes("EEC")) return 2;
+  // Priority: EEC GENERAL (0) → EEC ESPECIFICA (1) → other EEC (2) → EJERCICIOS/rest (99)
+  function sectionPriority(name: string): number {
+    const u = name.toUpperCase();
+    if (u.includes("EEC GENERAL")) return 0;
+    if (u.includes("EEC ESPECIF")) return 1;
+    if (u.includes("EEC")) return 2;
     return 99;
   }
 
   // Group exercises for selected week by block_name → category
   const groupedBlocks = useMemo(() => {
-    const weekExs = exercises
-      .filter((e) => e.week_number === week)
-      .sort((a, b) => (a.order_index ?? 9999) - (b.order_index ?? 9999));
+    // Do NOT pre-sort by order_index — preserve DB row order for block/category grouping
+    const weekExs = exercises.filter((e) => e.week_number === week);
 
-    // Preserve insertion order of blocks, then re-sort by priority
     const blockOrder: string[] = [];
     const blockMap = new Map<string, {
       section: "CALISTENIA" | "SKILLS";
@@ -90,7 +88,6 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
     }>();
 
     for (const ex of weekExs) {
-      // Use block_name if available, else fall back to a readable section label
       const blockKey = ex.block_name ?? (ex.section === "CALISTENIA" ? "Básicos" : "Skills");
       if (!blockMap.has(blockKey)) {
         blockOrder.push(blockKey);
@@ -102,13 +99,27 @@ export default function PlanViewer({ weeks, blocks, exercises }: Props) {
       block.categories.get(catKey)!.push(ex);
     }
 
-    // Sort blocks: EEC GENERAL first, EEC ESPECIFICA second, then the rest
-    blockOrder.sort((a, b) => blockPriority(a) - blockPriority(b));
+    // Sort blocks and categories: EEC GENERAL → EEC ESPECIFICA → rest (EJERCICIOS)
+    blockOrder.sort((a, b) => sectionPriority(a) - sectionPriority(b));
 
-    return blockOrder.map((key) => ({
-      blockName: key,
-      ...blockMap.get(key)!,
-    }));
+    return blockOrder.map((key) => {
+      const block = blockMap.get(key)!;
+      // Sort categories within each block by the same priority
+      const sortedCats = Array.from(block.categories.entries()).sort(
+        ([a], [b]) => sectionPriority(a) - sectionPriority(b)
+      );
+      // Within each category, sort exercises by order_index
+      const sortedCatsWithOrder = sortedCats.map(([catKey, exs]) => [
+        catKey,
+        [...exs].sort((a, b) => (a.order_index ?? 9999) - (b.order_index ?? 9999)),
+      ] as [string, DbExercise[]]);
+
+      return {
+        blockName: key,
+        section: block.section,
+        categories: new Map(sortedCatsWithOrder),
+      };
+    });
   }, [exercises, week]);
 
   const totalExercises = exercises.filter((e) => e.week_number === week).length;
